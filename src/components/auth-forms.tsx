@@ -42,7 +42,7 @@ export function SignupForm({ demo }: { demo: boolean }) {
   if (state?.ok) return <FormAlert tone="success">{state.message}</FormAlert>;
   return (
     <form action={action} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t("Display name")} htmlFor="displayName" error={fe?.displayName}>
           <Input id="displayName" name="displayName" autoComplete="name" required minLength={2} maxLength={40} invalid={Boolean(fe?.displayName)} />
         </Field>

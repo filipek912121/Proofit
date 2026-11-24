@@ -27,17 +27,17 @@ export async function DuelCard({ v }: { v: DuelView }) {
         {(d.status === "declined" || d.status === "cancelled") && <Pill>{t(d.status === "declined" ? "Declined" : "Cancelled")}</Pill>}
       </div>
       <Link href={`/duels/${d.id}`} className="mt-4 flex items-center gap-3" aria-label={t("Open duel")}>
-        <div className="flex flex-1 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <Avatar name={v.me.displayName} color={v.me.avatarColor} size={36} />
           <span className="truncate text-sm">{t("You")}</span>
           {won && <Crown className="h-4 w-4 text-gold" aria-label={t("Winner")} />}
         </div>
-        <span className="font-display text-2xl font-bold tabular-nums">
+        <span className="shrink-0 font-display text-2xl font-bold tabular-nums">
           {v.myScore}
           <span className="mx-1.5 text-subtle">:</span>
           {v.theirScore}
         </span>
-        <div className="flex flex-1 items-center justify-end gap-2">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           {lost && <Crown className="h-4 w-4 text-gold" aria-label={t("Winner")} />}
           <span className="truncate text-right text-sm">{v.opponent.displayName}</span>
           <Avatar name={v.opponent.displayName} color={v.opponent.avatarColor} size={36} />

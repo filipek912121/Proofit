@@ -19,7 +19,7 @@ export function ProgressBar({ value, className, tone = "brand", label }: { value
       aria-valuenow={pct}
       aria-label={label}
     >
-      <div className={cn("h-full rounded-full transition-[width] duration-700 ease-out", fills[tone])} style={{ width: `${pct}%` }} />
+      <div className={cn("h-full origin-left rounded-full transition-[width] duration-700 ease-out animate-grow-x", fills[tone])} style={{ width: `${pct}%` }} />
     </div>
   );
 }

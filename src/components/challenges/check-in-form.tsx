@@ -8,9 +8,10 @@ import { checkInAction } from "@/lib/actions/challenges";
 import { LIMITS } from "@/lib/config/game";
 import type { ProofKind } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
+import { Confetti } from "@/components/ui/confetti";
+import { CountUp } from "@/components/ui/count-up";
 import { Field, FormAlert, Input, Textarea } from "@/components/ui/field";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { useToast } from "@/components/ui/toast";
 
 export function CheckInForm({
   challengeId,
@@ -32,11 +33,7 @@ export function CheckInForm({
   const [preview, setPreview] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const toast = useToast();
 
-  useEffect(() => {
-    if (state && !state.ok) toast({ tone: "error", title: state.error });
-  }, [state, toast]);
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
 
   if (state?.ok && state.data) return <CheckInResultView r={state.data} />;
@@ -76,7 +73,7 @@ export function CheckInForm({
                     )}
                     aria-hidden
                   >
-                    {checked && <Check className="h-4 w-4" strokeWidth={3} />}
+                    {checked && <Check className="h-4 w-4 animate-check" strokeWidth={3} />}
                   </span>
                   <span className={cn("text-sm", checked && "text-fg/70 line-through decoration-easy/60")}>{t(task)}</span>
                 </label>
@@ -224,8 +221,11 @@ function CheckInResultView({ r }: { r: import("@/lib/services/challenges").Check
   const total = r.xp + r.streakBonus + r.completionBonus;
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet/25 via-indigo-500/10 to-electric/15 p-6 text-center ring-1 ring-violet/40 animate-pop" role="status">
-      <PartyPopper className="mx-auto mb-2 h-10 w-10 text-violet-2" aria-hidden />
-      <p className="font-display text-4xl font-bold text-gradient">+{total} XP</p>
+      <PartyPopper className="mx-auto mb-2 h-10 w-10 animate-float text-violet-2" aria-hidden />
+      <Confetti />
+      <p className="font-display text-4xl font-bold text-gradient">
+        <CountUp value={total} prefix="+" suffix=" XP" />
+      </p>
       <p className="mt-1 text-sm text-muted">{t("Check-in complete. See you tomorrow.")}</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs">
         <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5">

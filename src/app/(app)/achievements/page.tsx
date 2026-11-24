@@ -25,7 +25,7 @@ export default async function AchievementsPage() {
     <>
       <PageHeader eyebrow={t("Achievements")} title={t("Your trophy case")} subtitle={t("{n} of {total} badges unlocked. Each one adds a one-time XP bonus.", { n: unlocked, total: o.achievements.length })} />
       <ProgressBar value={unlocked / o.achievements.length} tone="gold" className="mb-8 h-2.5" label={t("Achievements unlocked")} />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {o.achievements.map((a, i) => (
           <div
             key={a.id}

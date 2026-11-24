@@ -8,6 +8,7 @@ import { getStore } from "@/lib/data";
 import { env, isDemoMode } from "@/lib/env";
 import { getPlan } from "@/lib/services/entitlements";
 import { getStripe } from "@/lib/stripe";
+import { getLocale } from "@/lib/i18n/server";
 import type { ActionResult } from "@/lib/types";
 import { localize } from "./run";
 
@@ -34,6 +35,7 @@ export async function startCheckoutAction(): Promise<ActionResult> {
     metadata: { userId },
     subscription_data: { metadata: { userId } },
     allow_promotion_codes: true,
+    locale: (await getLocale()) === "pl" ? "pl" : "en",
     success_url: `${base}/premium?status=success`,
     cancel_url: `${base}/premium?status=cancelled`,
   });

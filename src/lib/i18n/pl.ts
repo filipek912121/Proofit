@@ -3,6 +3,8 @@
  * Plurals use "one|few|many" forms (e.g. 1 dzień | 2 dni | 5 dni).
  */
 export const pl: Record<string, string> = {
+  "Demo mode — changes are not saved permanently on this server. Connect Supabase to keep accounts and progress.": "Tryb demo — zmiany nie są tu zapisywane na stałe. Podłącz Supabase, aby zachować konta i postępy.",
+  "{n} participant|{n} participants": "{n} uczestnik|{n} uczestników|{n} uczestników",
   "{n} win|{n} wins": "{n} wygrana|{n} wygrane|{n} wygranych",
   " or verified finishers": " lub osoby, które je ukończyły",
   "(you)": "(ty)",

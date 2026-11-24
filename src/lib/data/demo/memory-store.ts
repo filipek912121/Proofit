@@ -312,8 +312,9 @@ export const memoryStore: Store = {
 };
 
 /** Demo-only helper: create a brand-new demo account. */
-export function createDemoProfile(username: string, displayName: string) {
-  const id = randomUUID();
+export function createDemoProfile(username: string, displayName: string, existingId?: string) {
+  const id = existingId ?? randomUUID();
+  if (db().profiles.some((p) => p.id === id)) return id;
   const colors = ["#8b5cf6", "#3b82f6", "#06b6d4", "#ec4899", "#f59e0b", "#22c55e"];
   db().profiles.push({
     id,

@@ -136,12 +136,12 @@ export function CreateChallengeForm({
           </fieldset>
           <fieldset>
             <legend className="mb-3 text-sm font-medium">{t("Duration")}</legend>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {DURATION_OPTIONS.map((d) => (
                 <label key={d.days} className="cursor-pointer">
                   <input type="radio" name="durationDays" value={d.days} defaultChecked={(defaults.durationDays ?? 7) === d.days} className="peer sr-only" />
                   <span className="block rounded-xl bg-white/[0.03] p-3 text-center ring-1 ring-line transition peer-checked:bg-electric/15 peer-checked:ring-electric/50 peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2">
-                    <span className="block text-sm font-semibold">{t(d.label)}</span>
+                    <span className="block text-sm font-semibold break-words">{t(d.label)}</span>
                     <span className="block text-xs text-muted">{t.p(d.days, "{n} day", "{n} days")}</span>
                   </span>
                 </label>

@@ -2,7 +2,7 @@
 
 import { useT } from "@/lib/i18n/client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Award,
@@ -40,6 +40,12 @@ export interface ShellUser {
   inviteCount: number;
 }
 
+/** Icon that pulses while its link's page is loading — instant feedback on tap. */
+function NavIcon({ I, className }: { I: LucideIcon; className?: string }) {
+  const { pending } = useLinkStatus();
+  return <I className={cn(className, "transition-transform duration-200", pending && "animate-nav-pending scale-110")} aria-hidden />;
+}
+
 function useActive() {
   const pathname = usePathname();
   return (href: string) =>
@@ -73,7 +79,7 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
               )}
             >
               {active && <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-violet-2 to-electric shadow-[0_0_12px_#8b5cf6]" />}
-              <I className={cn("h-[18px] w-[18px] transition-colors", active ? "text-violet-2" : "group-hover:text-fg")} aria-hidden />
+              <NavIcon I={I} className={cn("h-[18px] w-[18px] transition-colors", active ? "text-violet-2" : "group-hover:text-fg")} />
               {t(item.label)}
               {badge > 0 && (
                 <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-violet px-1.5 text-[10px] font-bold text-white" aria-label={t("{n} pending", { n: badge })}>
@@ -168,7 +174,7 @@ export function BottomNav() {
                   aria-current={active ? "page" : undefined}
                   className="-mt-5 grid h-14 w-14 place-items-center rounded-2xl bg-brand text-white shadow-[0_10px_30px_-6px_rgb(124_58_237/0.9)] ring-4 ring-ink transition active:scale-95"
                 >
-                  <CirclePlus className="h-6 w-6" aria-hidden />
+                  <NavIcon I={CirclePlus} className="h-6 w-6" />
                 </Link>
               </li>
             );
@@ -179,8 +185,8 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn("flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition", active ? "text-fg" : "text-subtle")}
               >
-                <span className={cn("grid h-7 w-12 place-items-center rounded-full transition", active && "bg-violet/20")}>
-                  <I className={cn("h-5 w-5", active && "text-violet-2")} aria-hidden />
+                <span className={cn("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", active ? "scale-105 bg-violet/20" : "scale-100")}>
+                  <NavIcon I={I} className={cn("h-5 w-5", active && "text-violet-2")} />
                 </span>
                 {t(item.label)}
               </Link>

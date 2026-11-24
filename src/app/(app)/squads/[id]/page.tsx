@@ -105,7 +105,7 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
           {!d.isMember ? (
             <EmptyState icon={Lock} title={t("Members only")} text={t("Join the squad to see and join its challenges.")} />
           ) : d.challenges.length ? (
-            <div className="grid gap-3">{d.challenges.map((c) => <ChallengeCard key={c.id} c={c} />)}</div>
+            <div className="grid grid-cols-1 gap-3">{d.challenges.map((c) => <ChallengeCard key={c.id} c={c} />)}</div>
           ) : (
             <EmptyState icon={Target} title={t("No squad challenges yet")} text={t("Create one — only members can see it.")} action={<LinkButton href={`/create?squad=${s.id}`} size="sm">{t("Create squad challenge")}</LinkButton>} />
           )}

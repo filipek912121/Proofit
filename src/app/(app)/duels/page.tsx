@@ -42,18 +42,18 @@ export default async function DuelsPage({ searchParams }: { searchParams: Promis
         <div className="space-y-8">
           <section>
             <SectionTitle title={t("Live")} />
-            {active.length ? <div className="grid gap-3 sm:grid-cols-2">{active.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div> : <EmptyState icon={Swords} title={t("No live duels")} text={t("Send a challenge — it goes live when they accept.")} />}
+            {active.length ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{active.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div> : <EmptyState icon={Swords} title={t("No live duels")} text={t("Send a challenge — it goes live when they accept.")} />}
           </section>
           {pending.length > 0 && (
             <section>
               <SectionTitle title={t("Pending")} />
-              <div className="grid gap-3 sm:grid-cols-2">{pending.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{pending.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div>
             </section>
           )}
           {done.length > 0 && (
             <section>
               <SectionTitle title={t("History")} />
-              <div className="grid gap-3 sm:grid-cols-2">{done.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{done.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div>
             </section>
           )}
         </div>

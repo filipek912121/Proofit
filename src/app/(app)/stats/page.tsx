@@ -92,7 +92,7 @@ export default async function StatsPage() {
         </div>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="p-5">
           <SectionTitle title={t("By category")} subtitle={t("Approved check-ins")} />
           <ul className="space-y-3">

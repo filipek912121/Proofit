@@ -47,7 +47,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: SP }
         {t.p(list.length, "{n} challenge", "{n} challenges")}
       </p>
       {list.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((c, i) => (
             <ChallengeCard key={c.id} c={c} index={i} />
           ))}

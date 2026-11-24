@@ -1,2 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-export const cn = (...v: ClassValue[]) => clsx(v);
+import { twMerge } from "tailwind-merge";
+
+/** Joins class names and resolves conflicting Tailwind classes (the last one wins). */
+export const cn = (...v: ClassValue[]) => twMerge(clsx(v));

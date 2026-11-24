@@ -1,5 +1,4 @@
 import { getT } from "@/lib/i18n/server";
-import { formatNumber } from "@/lib/i18n/core";
 import { Compass, Flame, PartyPopper, Plus, Swords, Target, Trophy, Users, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,6 +11,7 @@ import { Card, SectionTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProgressBar, ProgressRing } from "@/components/ui/progress";
 import { ActionButton } from "@/components/ui/action-button";
+import { CountUp } from "@/components/ui/count-up";
 import { joinChallengeAction } from "@/lib/actions/challenges";
 import { requireUser } from "@/lib/auth";
 import { XP_RULES } from "@/lib/config/game";
@@ -99,7 +99,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </ProgressRing>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-2">{t(levelTitle(lv.level))}</p>
-            <p className="mt-1 font-display text-2xl font-bold">{formatNumber(me.xp, t.locale)} XP</p>
+            <p className="mt-1 font-display text-2xl font-bold"><CountUp value={me.xp} suffix=" XP" locale={t.locale === "pl" ? "pl-PL" : "en-GB"} /></p>
             <p className="mt-1 text-sm text-muted">
               {t("{xp} XP to level {n}", { xp: lv.xpToNext, n: lv.level + 1 })}
             </p>
@@ -117,14 +117,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <Card className="relative overflow-hidden p-4 animate-rise [animation-delay:60ms] sm:p-5">
           <span className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-hard/25 blur-2xl" aria-hidden />
           <Flame className="h-7 w-7 text-hard drop-shadow-[0_0_10px_rgb(249_115_22/.8)]" aria-hidden />
-          <p className="mt-2 font-display text-3xl font-bold sm:mt-3 sm:text-4xl">{streak}</p>
+          <p className="mt-2 font-display text-3xl font-bold sm:mt-3 sm:text-4xl"><CountUp value={streak} /></p>
           <p className="text-sm text-muted">{t("day streak · best {n}", { n: me.longestStreak })}</p>
           <p className="mt-2 hidden text-xs text-subtle sm:block">{nextBonus > 0 ? t("Tomorrow's streak bonus: +{n} XP", { n: nextBonus }) : t("Bonus XP starts on day {n}", { n: XP_RULES.streakBonus.startsAtDay })}</p>
         </Card>
         <Card className="relative overflow-hidden p-4 animate-rise [animation-delay:120ms] sm:p-5">
           <span className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-gold/20 blur-2xl" aria-hidden />
           <Trophy className="h-7 w-7 text-gold drop-shadow-[0_0_10px_rgb(251_191_36/.7)]" aria-hidden />
-          <p className="mt-2 font-display text-3xl font-bold sm:mt-3 sm:text-4xl">{rank ? `#${rank}` : "—"}</p>
+          <p className="mt-2 font-display text-3xl font-bold sm:mt-3 sm:text-4xl">{rank ? <CountUp value={rank} prefix="#" /> : "—"}</p>
           <p className="text-sm text-muted">{t("weekly global rank")}</p>
           <Link href="/leaderboard" className="mt-2 inline-block text-xs font-semibold text-violet-2 hover:underline">
             {t("View rankings →")}
@@ -140,7 +140,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           { href: "/squads", label: "Squads", I: Users },
           { href: "/explore", label: "Explore", I: Compass },
         ].map(({ href, label, I }) => (
-          <Link key={href} href={href} className="glass group flex flex-col items-center gap-2 rounded-2xl py-4 text-xs font-semibold transition hover:-translate-y-0.5 hover:border-violet/40 sm:text-sm">
+          <Link key={href} href={href} className="glass tap group flex flex-col items-center gap-2 rounded-2xl py-4 text-xs font-semibold transition hover:-translate-y-0.5 hover:border-violet/40 sm:text-sm">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet/25 to-electric/15 text-violet-2 ring-1 ring-violet/25 transition group-hover:shadow-[0_0_20px_-4px_#8b5cf6]">
               <I className="h-5 w-5" aria-hidden />
             </span>
@@ -185,7 +185,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 </div>
                 <h3 className="mt-3 font-display text-xl font-bold">{t(daily.title)}</h3>
                 <p className="mt-1 text-sm text-muted">{t(daily.description)}</p>
-                <div className="mt-4 flex items-center gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                   {daily.joined ? (
                     <LinkButton href={`/challenges/${daily.id}#checkin`} size="sm">
                       {t("Check in")}
@@ -198,7 +198,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                   <Link href={`/challenges/${daily.id}`} className="text-sm text-muted hover:text-fg">
                     {t("Details")}
                   </Link>
-                  <span className="ml-auto text-xs text-subtle">{t("{n} joined", { n: daily.participants })}</span>
+                  <span className="ml-auto text-xs text-subtle">{t.p(daily.participants, "{n} participant", "{n} participants")}</span>
                 </div>
               </Card>
             </section>
@@ -218,7 +218,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                 {activeDuels.slice(0, 3).map((v) => {
                   const lead = v.myScore - v.theirScore;
                   return (
-                    <Link key={v.duel.id} href={`/duels/${v.duel.id}`} className="glass flex items-center gap-3 rounded-2xl p-4 transition hover:border-line-strong">
+                    <Link key={v.duel.id} href={`/duels/${v.duel.id}`} className="glass tap flex items-center gap-3 rounded-2xl p-4 hover:border-line-strong">
                       <Avatar name={v.opponent.displayName} color={v.opponent.avatarColor} size={38} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold">{t("vs {name}", { name: v.opponent.displayName })}</p>

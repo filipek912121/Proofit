@@ -82,7 +82,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
                 <dt className="flex items-center gap-1.5 text-xs text-muted">
                   <I className="h-3.5 w-3.5" aria-hidden /> {k}
                 </dt>
-                <dd className={cn("mt-1 font-display text-lg font-bold", cls)}>{v}</dd>
+                <dd className={cn("mt-1 font-display text-base font-bold leading-snug break-words sm:text-lg", cls)}>{v}</dd>
               </div>
             ))}
           </dl>

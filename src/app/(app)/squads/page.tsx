@@ -21,7 +21,7 @@ async function SquadTile({ s, count, joinable }: { s: Squad; count: number; join
   const t = await getT();
   const hue = [...s.name].reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
   return (
-    <div className="glass group flex flex-col rounded-2xl p-5 transition hover:border-line-strong">
+    <div className="glass tap group flex flex-col rounded-2xl p-5 hover:border-line-strong">
       <Link href={`/squads/${s.id}`} className="flex items-center gap-3">
         <span className="grid h-12 w-12 place-items-center rounded-2xl font-display text-lg font-bold text-white ring-1 ring-white/10" style={{ background: `linear-gradient(135deg, hsl(${hue} 80% 55%), hsl(${(hue + 50) % 360} 80% 45%))` }} aria-hidden>
           {s.name[0]}
@@ -57,7 +57,7 @@ export default async function SquadsPage() {
           <section>
             <SectionTitle title={t("Your squads")} />
             {mine.length ? (
-              <div className="grid gap-3 sm:grid-cols-2">{mine.map((s) => <SquadTile key={s.id} s={s} count={counts[s.id]} />)}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{mine.map((s) => <SquadTile key={s.id} s={s} count={counts[s.id]} />)}</div>
             ) : (
               <EmptyState icon={Users} title={t("No squad yet")} text={t("Create one for your friends or join a public squad below.")} />
             )}
@@ -65,7 +65,7 @@ export default async function SquadsPage() {
           <section>
             <SectionTitle title={t("Discover")} subtitle={t("Public squads you can join")} />
             {discover.length ? (
-              <div className="grid gap-3 sm:grid-cols-2">{discover.map((s) => <SquadTile key={s.id} s={s} count={counts[s.id]} joinable />)}</div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{discover.map((s) => <SquadTile key={s.id} s={s} count={counts[s.id]} joinable />)}</div>
             ) : (
               <p className="text-sm text-muted">{t("No other public squads right now.")}</p>
             )}

@@ -12,7 +12,7 @@ export async function ActiveChallengeRow({ a }: { a: ActiveChallenge }) {
   return (
     <Link
       href={`/challenges/${c.id}${a.checkedInToday ? "" : "#checkin"}`}
-      className="glass group flex items-center gap-4 rounded-2xl p-4 transition hover:border-line-strong hover:bg-white/[0.06]"
+      className="glass tap group flex items-center gap-4 rounded-2xl p-4 hover:border-line-strong hover:bg-white/[0.06]"
     >
       <span
         className={cn(

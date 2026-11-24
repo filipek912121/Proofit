@@ -29,7 +29,7 @@ export default async function ReviewPage() {
       <section className="mb-10">
         <SectionTitle title={`${t("Waiting for you")} (${queue.length})`} />
         {queue.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {queue.map((q) => (
               <ReviewCard
                 key={q.proof.id}

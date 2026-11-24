@@ -9,6 +9,7 @@ import { cn } from "./cn";
 type Tone = "success" | "error" | "info";
 interface Toast {
   id: number;
+  leaving?: boolean;
   tone: Tone;
   title: string;
   text?: string;
@@ -20,11 +21,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const t = useT();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
-  const dismiss = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+  // Play the exit animation, then remove.
+  const dismiss = useCallback((id: number) => {
+    setToasts((list) => list.map((x) => (x.id === id ? { ...x, leaving: true } : x)));
+    setTimeout(() => setToasts((list) => list.filter((x) => x.id !== id)), 220);
+  }, []);
   const push = useCallback(
     (t: Omit<Toast, "id">) => {
       const id = nextId.current++;
-      setToasts((list) => [...list.slice(-3), { ...t, id }]);
+      // Ignore an identical toast that is already on screen (e.g. double taps).
+      setToasts((list) => (list.some((x) => !x.leaving && x.title === t.title && x.tone === t.tone) ? list : [...list.slice(-2), { ...t, id }]));
       setTimeout(() => dismiss(id), t.tone === "error" ? 6000 : 4200);
     },
     [dismiss],
@@ -44,7 +50,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               key={item.id}
               className={cn(
-                "glass-strong pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl p-4 shadow-2xl animate-pop",
+                "glass-strong pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl p-4 shadow-2xl",
+                item.leaving ? "animate-toast-out" : "animate-toast-in",
                 item.tone === "success" && "ring-1 ring-easy/30",
                 item.tone === "error" && "ring-1 ring-extreme/30",
               )}

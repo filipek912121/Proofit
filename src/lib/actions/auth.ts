@@ -2,7 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { DEMO_COOKIE } from "@/lib/auth";
+import { DEMO_COOKIE, DEMO_PROFILE_COOKIE } from "@/lib/auth";
 import { getStore } from "@/lib/data";
 import { createDemoProfile } from "@/lib/data/demo/memory-store";
 import { DEMO_USER_ID } from "@/lib/data/demo/seed";
@@ -44,7 +44,9 @@ export async function signUpAction(_prev: ActionResult | null, fd: FormData): Pr
       return localize({ ok: false, error: "Check your details.", fieldErrors: { ...(u.success ? {} : { username: u.error.issues[0].message }), ...(name.length < 2 ? { displayName: "At least 2 characters" } : {}) } });
     if (await getStore().getProfileByUsername(u.data)) return localize({ ok: false, error: "Username taken.", fieldErrors: { username: "Already taken" } });
     const id = createDemoProfile(u.data, name.slice(0, 40));
-    (await cookies()).set(DEMO_COOKIE, id, demoCookieOpts);
+    const jar = await cookies();
+    jar.set(DEMO_COOKIE, id, demoCookieOpts);
+    jar.set(DEMO_PROFILE_COOKIE, JSON.stringify({ u: u.data, n: name.slice(0, 40) }), demoCookieOpts);
     redirect("/dashboard?welcome=1");
   }
   if (!parsed.success) return localize({ ok: false, error: "Check your details.", fieldErrors: zodFieldErrors(parsed.error) });
@@ -75,7 +77,9 @@ export async function enterDemoAction(): Promise<void> {
 
 export async function signOutAction(): Promise<void> {
   if (isDemoMode()) {
-    (await cookies()).delete(DEMO_COOKIE);
+    const jar = await cookies();
+    jar.delete(DEMO_COOKIE);
+    jar.delete(DEMO_PROFILE_COOKIE);
   } else {
     const supabase = await createSupabaseServerClient();
     await supabase.auth.signOut();
