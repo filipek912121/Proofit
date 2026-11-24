@@ -20,11 +20,12 @@ import {
   Users,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { cn } from "@/components/ui/cn";
 import { ProgressBar } from "@/components/ui/progress";
 import { BOTTOM_NAV, NAV } from "./nav-items";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const ICONS: Record<string, LucideIcon> = { House, Compass, CirclePlus, Swords, Users, Trophy, Award, ShieldCheck, User };
 
@@ -32,6 +33,8 @@ export interface ShellUser {
   displayName: string;
   username: string;
   avatarColor: string;
+  avatarUrl: string | null;
+  avatarFrame: string;
   level: number;
   levelProgress: number;
   xp: number;
@@ -75,7 +78,7 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
               aria-current={active ? "page" : undefined}
               className={cn(
                 "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                active ? "bg-gradient-to-r from-violet/20 to-electric/5 text-fg" : "text-muted hover:bg-white/5 hover:text-fg",
+                active ? "bg-gradient-to-r from-violet/20 to-electric/5 text-fg" : "text-muted hover:bg-tint/5 hover:text-fg",
               )}
             >
               {active && <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-violet-2 to-electric shadow-[0_0_12px_#8b5cf6]" />}
@@ -91,7 +94,10 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
         })}
       </nav>
 
-      <LanguageSwitcher className="mb-3 self-start" />
+      <div className="mb-3 flex flex-wrap gap-2">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+      </div>
       <Link
         href="/premium"
         className={cn(
@@ -106,9 +112,9 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
         </div>
       </Link>
 
-      <div className="rounded-2xl bg-white/[0.03] p-3 ring-1 ring-line">
+      <div className="rounded-2xl bg-tint/[0.03] p-3 ring-1 ring-line">
         <div className="flex items-center gap-3">
-          <Avatar name={user.displayName} color={user.avatarColor} size={38} />
+          <Avatar {...avatarOf(user)} size={38} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
             <p className="text-xs text-muted">
@@ -116,7 +122,7 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
             </p>
           </div>
           <form action={signOut}>
-            <button className="rounded-lg p-2 text-subtle transition hover:bg-white/5 hover:text-fg" aria-label={t("Log out")}>
+            <button className="rounded-lg p-2 text-subtle transition hover:bg-tint/5 hover:text-fg" aria-label={t("Log out")}>
               <LogOut className="h-4 w-4" />
             </button>
           </form>
@@ -131,7 +137,7 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
 export function MobileTopBar({ user }: { user: ShellUser }) {
   const t = useT();
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-[#0b0b13]/90 px-4 backdrop-blur-xl lg:hidden">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur-xl lg:hidden">
       <Link href="/dashboard" aria-label={t("PROOFIT home")}>
         <Logo size={26} />
       </Link>
@@ -159,7 +165,7 @@ export function BottomNav() {
   const t = useT();
   const isActive = useActive();
   return (
-    <nav aria-label={t("Primary")} className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[#0b0b13]/95 backdrop-blur-xl lg:hidden">
+    <nav aria-label={t("Primary")} className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 backdrop-blur-xl lg:hidden">
       <ul className="mx-auto grid max-w-md grid-cols-5 px-2 pt-1.5">
         {BOTTOM_NAV.map((href) => {
           const item = NAV.find((n) => n.href === href)!;

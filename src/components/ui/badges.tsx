@@ -31,7 +31,7 @@ export function CategoryChip({ category, className }: { category: Category; clas
   const t = useT();
   const m = CATEGORY_META[category];
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-muted ring-1 ring-line", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-tint/5 px-2.5 py-1 text-xs text-muted ring-1 ring-line", className)}>
       <Icon name={m.icon} className="h-3.5 w-3.5" />
       {t(m.label)}
     </span>
@@ -42,7 +42,7 @@ export function VisibilityChip({ visibility, squad }: { visibility: "public" | "
   const t = useT();
   const I = squad ? Users : visibility === "private" ? Lock : Globe;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs text-muted ring-1 ring-line">
+    <span className="inline-flex items-center gap-1 rounded-full bg-tint/5 px-2.5 py-1 text-xs text-muted ring-1 ring-line">
       <I className="h-3.5 w-3.5" aria-hidden />
       {t(squad ? "Squad" : visibility === "private" ? "Private" : "Public")}
     </span>
@@ -51,7 +51,7 @@ export function VisibilityChip({ visibility, squad }: { visibility: "public" | "
 
 export function Pill({ children, className, tone = "default" }: { children: React.ReactNode; className?: string; tone?: "default" | "violet" | "gold" | "green" | "orange" | "red" | "blue" }) {
   const tones = {
-    default: "bg-white/5 text-muted ring-line",
+    default: "bg-tint/5 text-muted ring-line",
     violet: "bg-violet/15 text-violet-2 ring-violet/30",
     gold: "bg-gold/15 text-gold ring-gold/30",
     green: "bg-easy/12 text-green-300 ring-easy/30",

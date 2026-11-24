@@ -126,9 +126,10 @@ describe("plans", () => {
 
 describe("achievements", () => {
   it("unlocks based on stats", () => {
-    const base = { totalCheckins: 0, longestStreak: 0, challengesCompleted: 0, extremeCompleted: 0, duelsWon: 0, squads: 0, challengesCreated: 0, level: 1, approvedProofs: 0 };
+    const base = { totalCheckins: 0, longestStreak: 0, challengesCompleted: 0, extremeCompleted: 0, duelsWon: 0, squads: 0, challengesCreated: 0, level: 1, approvedProofs: 0, referrals: 0 };
     assert.deepEqual(qualifyingAchievements(base), []);
     const got = qualifyingAchievements({ ...base, totalCheckins: 1, longestStreak: 7, extremeCompleted: 1 });
     assert.deepEqual(got.sort(), ["extreme_finisher", "first_challenge", "streak_7"]);
+    assert.ok(qualifyingAchievements({ ...base, referrals: 3 }).includes("recruiter"));
   });
 });

@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ChallengeCard } from "@/components/challenges/challenge-card";
 import { CopyCode } from "@/components/social/squad-forms";
 import { ActionButton } from "@/components/ui/action-button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
@@ -66,9 +66,9 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
           <SectionTitle title={t("Weekly leaderboard")} subtitle={t("XP earned since Monday")} />
           <Card className="divide-y divide-line">
             {d.leaderboard.map((r, i) => (
-              <Link key={r.profile.id} href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className={cn("flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03]", r.profile.id === me.id && "bg-violet/[0.08]")}>
+              <Link key={r.profile.id} href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className={cn("flex items-center gap-3 px-4 py-3 transition hover:bg-tint/[0.03]", r.profile.id === me.id && "bg-violet/[0.08]")}>
                 <span className={cn("w-6 text-center font-display font-bold tabular-nums", i === 0 ? "text-gold" : i === 1 ? "text-zinc-300" : i === 2 ? "text-orange-400" : "text-subtle")}>{i + 1}</span>
-                <Avatar name={r.profile.displayName} color={r.profile.avatarColor} size={36} />
+                <Avatar {...avatarOf(r.profile)} size={36} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 truncate text-sm font-semibold">
                     {r.profile.displayName}
@@ -89,7 +89,7 @@ export default async function SquadPage({ params }: { params: Promise<{ id: stri
               <ul className="space-y-1">
                 {d.invitable.slice(0, 6).map((f) => (
                   <li key={f.id} className="flex items-center gap-3 rounded-xl px-2 py-1.5">
-                    <Avatar name={f.displayName} color={f.avatarColor} size={30} />
+                    <Avatar {...avatarOf(f)} size={30} />
                     <span className="flex-1 truncate text-sm">{f.displayName}</span>
                     <ActionButton size="sm" variant="secondary" action={inviteToSquadAction.bind(null, s.id, f.id)}>
                       {t("Invite")}

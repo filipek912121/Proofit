@@ -3,6 +3,7 @@ import { ArrowRight, Camera, Crown, Flame, ShieldCheck, Swords, Trophy, Users, Z
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { DifficultyBadge } from "@/components/ui/badges";
 import { Button, LinkButton } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/progress";
@@ -101,7 +102,7 @@ export default async function Landing() {
               <ProgressBar value={0.68} className="mt-4" label={t("Level progress example")} />
               <div className="mt-5 space-y-3">
                 {DIFFICULTIES.map((d, i) => (
-                  <div key={d} className="flex items-center gap-3 rounded-2xl bg-white/[0.04] p-3 ring-1 ring-line" style={{ animationDelay: `${200 + i * 80}ms` }}>
+                  <div key={d} className="flex items-center gap-3 rounded-2xl bg-tint/[0.04] p-3 ring-1 ring-line" style={{ animationDelay: `${200 + i * 80}ms` }}>
                     <span className={`grid h-10 w-10 place-items-center rounded-xl ${DIFFICULTY_META[d].bg} ${DIFFICULTY_META[d].text}`}>
                       <Zap className="h-5 w-5" aria-hidden />
                     </span>
@@ -189,7 +190,10 @@ export default async function Landing() {
 
       <footer className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-line px-5 py-8 text-sm text-subtle sm:flex-row">
         <Logo size={22} />
-        <LanguageSwitcher />
+        <div className="flex gap-2">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
         <p>© {new Date().getFullYear()} PROOFIT · Challenge. Compete. Win.</p>
         <Link href={signedIn ? "/dashboard" : "/login"} className="hover:text-fg">
           {signedIn ? t("Dashboard") : t("Log in")}

@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ActiveChallengeRow } from "@/components/challenges/active-challenge-row";
 import { InvitesPanel } from "@/components/social/invites-panel";
-import { Avatar } from "@/components/ui/avatar";
+import { ReferralCard } from "@/components/social/referral-card";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { DifficultyBadge } from "@/components/ui/badges";
 import { LinkButton } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
@@ -219,7 +220,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                   const lead = v.myScore - v.theirScore;
                   return (
                     <Link key={v.duel.id} href={`/duels/${v.duel.id}`} className="glass tap flex items-center gap-3 rounded-2xl p-4 hover:border-line-strong">
-                      <Avatar name={v.opponent.displayName} color={v.opponent.avatarColor} size={38} />
+                      <Avatar {...avatarOf(v.opponent)} size={38} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold">{t("vs {name}", { name: v.opponent.displayName })}</p>
                         <p className="truncate text-xs text-muted">{v.challenge ? t(v.challenge.title) : ""}</p>
@@ -241,6 +242,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
+      <ReferralCard userId={me.id} username={me.username} compact />
     </div>
   );
 }

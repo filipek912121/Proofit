@@ -1,7 +1,7 @@
 import { getT } from "@/lib/i18n/server";
 import { Bell, Swords, Users, Zap } from "lucide-react";
 import Link from "next/link";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { ActionButton } from "@/components/ui/action-button";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { respondDuelAction, respondInviteAction } from "@/lib/actions/social";
@@ -41,7 +41,7 @@ export async function InvitesPanel({ invites, duels }: { invites: InviteView[]; 
         {invites.map((v) => (
           <Card key={v.invite.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
             <div className="flex flex-1 items-center gap-3">
-              {v.from ? <Avatar name={v.from.displayName} color={v.from.avatarColor} size={40} /> : <Bell className="h-5 w-5" aria-hidden />}
+              {v.from ? <Avatar {...avatarOf(v.from)} size={40} /> : <Bell className="h-5 w-5" aria-hidden />}
               <p className="text-sm">
                 <span className="font-semibold">{v.from?.displayName ?? t("Someone")}</span> {t("invited you to")}{" "}
                 {v.invite.kind === "challenge" ? (

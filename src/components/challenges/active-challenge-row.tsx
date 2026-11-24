@@ -12,12 +12,12 @@ export async function ActiveChallengeRow({ a }: { a: ActiveChallenge }) {
   return (
     <Link
       href={`/challenges/${c.id}${a.checkedInToday ? "" : "#checkin"}`}
-      className="glass tap group flex items-center gap-4 rounded-2xl p-4 hover:border-line-strong hover:bg-white/[0.06]"
+      className="glass tap group flex items-center gap-4 rounded-2xl p-4 hover:border-line-strong hover:bg-tint/[0.06]"
     >
       <span
         className={cn(
           "grid h-11 w-11 shrink-0 place-items-center rounded-xl ring-1",
-          a.todayStatus === "approved" ? "bg-easy/15 text-easy ring-easy/30" : a.todayStatus === "pending" ? "bg-electric/15 text-blue-300 ring-electric/30" : "bg-white/5 text-muted ring-line",
+          a.todayStatus === "approved" ? "bg-easy/15 text-easy ring-easy/30" : a.todayStatus === "pending" ? "bg-electric/15 text-blue-300 ring-electric/30" : "bg-tint/5 text-muted ring-line",
         )}
         aria-hidden
       >

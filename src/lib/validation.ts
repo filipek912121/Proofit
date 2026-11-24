@@ -79,6 +79,8 @@ export const profileSchema = z.object({
   displayName: z.string().trim().min(2, "At least 2 characters").max(40),
   bio: z.string().trim().max(160).default(""),
   avatarColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Pick a colour"),
+  avatarFrame: z.string().regex(/^[a-z]{2,20}$/).default("none"),
+  banner: z.string().regex(/^[a-z]{2,20}$/).default("default"),
 });
 
 export const idSchema = id;

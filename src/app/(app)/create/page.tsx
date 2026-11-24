@@ -67,7 +67,7 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
       <CreateChallengeForm
         key={sp.template ?? "new"}
         squads={squads.map((s) => ({ id: s.id, name: s.name }))}
-        friends={friends.map((f) => ({ id: f.id, displayName: f.displayName, username: f.username, avatarColor: f.avatarColor }))}
+        friends={friends.map((f) => ({ id: f.id, displayName: f.displayName, username: f.username, avatarColor: f.avatarColor, avatarUrl: f.avatarUrl, avatarFrame: f.avatarFrame }))}
         isPremium={ent.isPremium}
         defaults={defaults}
       />

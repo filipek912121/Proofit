@@ -12,7 +12,7 @@ export function ProgressBar({ value, className, tone = "brand", label }: { value
   };
   return (
     <div
-      className={cn("h-2 w-full overflow-hidden rounded-full bg-white/[0.07]", className)}
+      className={cn("h-2 w-full overflow-hidden rounded-full bg-tint/[0.07]", className)}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -38,7 +38,7 @@ export function ProgressRing({ value, size = 120, stroke = 10, children, label }
             <stop offset="100%" stopColor="#22d3ee" />
           </linearGradient>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgb(255 255 255 / 0.07)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-tint)" strokeOpacity={0.08} strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}

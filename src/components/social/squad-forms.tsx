@@ -23,7 +23,7 @@ export function CreateSquadForm({ isPremium }: { isPremium: boolean }) {
       <Field label={t("Description")} htmlFor="sq-desc" error={fe?.description}>
         <Textarea id="sq-desc" name="description" maxLength={200} className="min-h-20" placeholder={t("What brings you together?")} />
       </Field>
-      <label className={`flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3 ring-1 ring-line ${isPremium ? "cursor-pointer" : "opacity-60"}`}>
+      <label className={`flex items-center gap-3 rounded-xl bg-tint/[0.03] px-4 py-3 ring-1 ring-line ${isPremium ? "cursor-pointer" : "opacity-60"}`}>
         <Lock className="h-4 w-4 text-muted" aria-hidden />
         <span className="flex-1 text-sm">
           {t("Private squad")}

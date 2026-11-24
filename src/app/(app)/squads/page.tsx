@@ -23,7 +23,7 @@ async function SquadTile({ s, count, joinable }: { s: Squad; count: number; join
   return (
     <div className="glass tap group flex flex-col rounded-2xl p-5 hover:border-line-strong">
       <Link href={`/squads/${s.id}`} className="flex items-center gap-3">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl font-display text-lg font-bold text-white ring-1 ring-white/10" style={{ background: `linear-gradient(135deg, hsl(${hue} 80% 55%), hsl(${(hue + 50) % 360} 80% 45%))` }} aria-hidden>
+        <span className="grid h-12 w-12 place-items-center rounded-2xl font-display text-lg font-bold text-white ring-1 ring-tint/10" style={{ background: `linear-gradient(135deg, hsl(${hue} 80% 55%), hsl(${(hue + 50) % 360} 80% 45%))` }} aria-hidden>
           {s.name[0]}
         </span>
         <span className="min-w-0">

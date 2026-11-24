@@ -7,7 +7,7 @@ import { durationLabel } from "@/components/challenges/challenge-card";
 import { STATUS_LABEL } from "@/components/social/profile-view";
 import { CheckInForm } from "@/components/challenges/check-in-form";
 import { ActionButton } from "@/components/ui/action-button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { CategoryChip, DifficultyBadge, Pill, VisibilityChip } from "@/components/ui/badges";
 import { LinkButton } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
@@ -41,6 +41,9 @@ export default async function ChallengePage({ params, searchParams }: { params: 
   const days = d.window ? Array.from({ length: c.durationDays }, (_, i) => addDays(d.window!.startDay, i)) : [];
   const byDay = new Map(d.myCompletions.filter((x) => x.status !== "rejected").map((x) => [x.day, x.status]));
   const isActive = p?.status === "active";
+  // Keep the check-in panel mounted when today's check-in just finished the challenge,
+  // so the XP celebration stays on screen instead of jumping to the "completed" view.
+  const showCheckIn = isActive || (p?.status === "completed" && Boolean(d.todayCompletion));
 
   return (
     <div className="space-y-6">
@@ -78,7 +81,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
               { I: Users, k: t("Participants"), v: String(c.participants) },
               { I: c.requiresProof ? Camera : CircleCheck, k: t("Verification"), v: c.requiresProof ? t("Proof required") : t("Self check-in") },
             ].map(({ I, k, v, cls }) => (
-              <div key={k} className="rounded-2xl bg-white/[0.04] p-3 ring-1 ring-line">
+              <div key={k} className="rounded-2xl bg-tint/[0.04] p-3 ring-1 ring-line">
                 <dt className="flex items-center gap-1.5 text-xs text-muted">
                   <I className="h-3.5 w-3.5" aria-hidden /> {k}
                 </dt>
@@ -92,7 +95,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-6">
           <Card className="p-5 sm:p-6" id="checkin">
-            {isActive && d.window ? (
+            {showCheckIn && d.window ? (
               <>
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <h2 className="font-display text-lg font-bold">{t("Today's check-in")}</h2>
@@ -186,7 +189,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
             <SectionTitle title={t("Daily tasks")} />
             <ul className="space-y-2">
               {c.tasks.map((task, i) => (
-                <li key={task} className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3 text-sm ring-1 ring-line">
+                <li key={task} className="flex items-center gap-3 rounded-xl bg-tint/[0.03] px-4 py-3 text-sm ring-1 ring-line">
                   <span className={cn("grid h-6 w-6 place-items-center rounded-md text-xs font-bold", m.bg, m.text)}>{i + 1}</span>
                   {t(task)}
                 </li>
@@ -224,8 +227,8 @@ export default async function ChallengePage({ params, searchParams }: { params: 
               <ul className="space-y-1">
                 {d.roster.map((r) => (
                   <li key={r.profile.id}>
-                    <Link href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/5">
-                      <Avatar name={r.profile.displayName} color={r.profile.avatarColor} size={34} />
+                    <Link href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-tint/5">
+                      <Avatar {...avatarOf(r.profile)} size={34} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium">
                           {r.profile.displayName} {r.profile.id === me.id && <span className="text-subtle">{t("(you)")}</span>}

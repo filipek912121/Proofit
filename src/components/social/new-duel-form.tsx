@@ -10,7 +10,7 @@ import { Field, FormAlert } from "@/components/ui/field";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { useToast } from "@/components/ui/toast";
 
-const selectClass = "w-full rounded-xl bg-white/[0.04] px-4 py-3 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60";
+const selectClass = "w-full rounded-xl bg-tint/[0.04] px-4 py-3 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60";
 
 export function NewDuelForm({
   opponents,

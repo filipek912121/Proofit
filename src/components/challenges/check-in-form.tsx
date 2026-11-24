@@ -55,7 +55,7 @@ export function CheckInForm({
                 <label
                   className={cn(
                     "flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 ring-1 transition",
-                    checked ? "bg-easy/10 ring-easy/35" : "bg-white/[0.03] ring-line hover:ring-line-strong",
+                    checked ? "bg-easy/10 ring-easy/35" : "bg-tint/[0.03] ring-line hover:ring-line-strong",
                   )}
                 >
                   <input
@@ -228,7 +228,7 @@ function CheckInResultView({ r }: { r: import("@/lib/services/challenges").Check
       </p>
       <p className="mt-1 text-sm text-muted">{t("Check-in complete. See you tomorrow.")}</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs">
-        <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-tint/10 px-3 py-1.5">
           <Zap className="h-3.5 w-3.5" aria-hidden /> {t("{n} base", { n: r.xp })}
         </span>
         {r.streakBonus > 0 && (

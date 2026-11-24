@@ -2,7 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import { Calendar, CircleCheck, Crown, Flame, Lock, Settings, Target, Trophy, UserCheck, UserPlus, Zap } from "lucide-react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { DifficultyBadge, Pill } from "@/components/ui/badges";
 import { LinkButton } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Icon } from "@/components/ui/icon";
 import { ProgressBar } from "@/components/ui/progress";
 import { followAction } from "@/lib/actions/social";
 import { formatDate, formatNumber } from "@/lib/i18n/core";
+import { bannerStyle } from "@/lib/config/cosmetics";
 import { levelFromXp, levelTitle } from "@/lib/engine/levels";
 import type { profileOverview } from "@/lib/services/profile";
 
@@ -34,9 +35,9 @@ export async function ProfileView({ o }: { o: Overview }) {
   return (
     <div className="space-y-6">
       <Card glow className="relative overflow-hidden p-6 sm:p-8">
-        <div className="absolute inset-x-0 top-0 h-28 opacity-70" style={{ background: `linear-gradient(120deg, ${p.avatarColor}55, transparent 70%)` }} aria-hidden />
+        <div className="absolute inset-x-0 top-0 h-32 opacity-80 [mask-image:linear-gradient(to_bottom,black_40%,transparent)]" style={{ background: bannerStyle(p.banner, `${p.avatarColor}88`) }} aria-hidden />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end">
-          <Avatar name={p.displayName} color={p.avatarColor} size={88} ring={o.isPremium} />
+          <Avatar {...avatarOf(p)} size={88} ring={o.isPremium} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-3xl font-bold">{p.displayName}</h1>
@@ -111,7 +112,7 @@ export async function ProfileView({ o }: { o: Overview }) {
               key={a.id}
               className={cn(
                 "flex w-28 shrink-0 flex-col items-center rounded-2xl p-3 text-center ring-1 sm:w-auto",
-                a.unlockedAt ? cn("bg-gradient-to-b", TIER_STYLE[a.tier]) : "bg-white/[0.02] text-subtle ring-line",
+                a.unlockedAt ? cn("bg-gradient-to-b", TIER_STYLE[a.tier]) : "bg-tint/[0.02] text-subtle ring-line",
               )}
               title={t(a.description)}
             >
@@ -127,8 +128,8 @@ export async function ProfileView({ o }: { o: Overview }) {
         {o.history.length ? (
           <Card className="divide-y divide-line">
             {o.history.map(({ participation: pa, challenge: c }) => (
-              <Link key={pa.id} href={`/challenges/${c.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03]">
-                <span className={cn("grid h-9 w-9 place-items-center rounded-xl ring-1", pa.status === "completed" ? "bg-easy/12 text-easy ring-easy/30" : "bg-white/5 text-subtle ring-line")}>
+              <Link key={pa.id} href={`/challenges/${c.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-tint/[0.03]">
+                <span className={cn("grid h-9 w-9 place-items-center rounded-xl ring-1", pa.status === "completed" ? "bg-easy/12 text-easy ring-easy/30" : "bg-tint/5 text-subtle ring-line")}>
                   {pa.status === "completed" ? <CircleCheck className="h-5 w-5" aria-hidden /> : <Target className="h-5 w-5" aria-hidden />}
                 </span>
                 <span className="min-w-0 flex-1">

@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n/client";
 import { Check, ExternalLink, X } from "lucide-react";
 import { useActionState } from "react";
 import { reviewProofAction } from "@/lib/actions/challenges";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { DifficultyBadge } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
@@ -22,7 +22,7 @@ export interface ReviewCardData {
   createdAt: string;
   day: string | null;
   challenge: { id: string; title: string; difficulty: Difficulty; tasks: string[] };
-  submitter: { displayName: string; username: string; avatarColor: string };
+  submitter: { displayName: string; username: string; avatarColor: string; avatarUrl: string | null; avatarFrame: string };
 }
 
 export function ReviewCard({ d }: { d: ReviewCardData }) {
@@ -43,7 +43,7 @@ export function ReviewCard({ d }: { d: ReviewCardData }) {
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center gap-3">
-          <Avatar name={d.submitter.displayName} color={d.submitter.avatarColor} size={36} />
+          <Avatar {...avatarOf(d.submitter)} size={36} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{d.submitter.displayName}</p>
             <p className="text-xs text-subtle">
@@ -58,7 +58,7 @@ export function ReviewCard({ d }: { d: ReviewCardData }) {
             <li key={task}>• {t(task)}</li>
           ))}
         </ul>
-        {d.text && <blockquote className="mt-3 rounded-xl bg-white/[0.04] p-3 text-sm ring-1 ring-line">{d.text}</blockquote>}
+        {d.text && <blockquote className="mt-3 rounded-xl bg-tint/[0.04] p-3 text-sm ring-1 ring-line">{d.text}</blockquote>}
         {d.url && (
           <a href={d.url} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 inline-flex items-center gap-1.5 break-all text-sm text-violet-2 hover:underline">
             <ExternalLink className="h-4 w-4 shrink-0" aria-hidden /> {d.url}

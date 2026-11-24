@@ -11,6 +11,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "squad_up", name: "Squad Up", description: "Join or create a squad.", icon: "Users", tier: "bronze", xpBonus: 2, premiumOnly: false },
   { id: "creator", name: "Architect", description: "Create your first challenge.", icon: "Sparkles", tier: "bronze", xpBonus: 2, premiumOnly: false },
   { id: "level_10", name: "Double Digits", description: "Reach level 10.", icon: "Star", tier: "silver", xpBonus: 5, premiumOnly: false },
+  { id: "recruiter", name: "Recruiter", description: "Invite 3 friends who complete a check-in.", icon: "Users", tier: "silver", xpBonus: 10, premiumOnly: false },
   { id: "proof_pro", name: "Proof Pro", description: "Get 5 proofs approved.", icon: "ShieldCheck", tier: "silver", xpBonus: 5, premiumOnly: false },
 ];
 
@@ -24,6 +25,7 @@ export interface AchievementStats {
   challengesCreated: number;
   level: number;
   approvedProofs: number;
+  referrals: number;
 }
 
 export function qualifyingAchievements(s: AchievementStats): string[] {
@@ -38,5 +40,6 @@ export function qualifyingAchievements(s: AchievementStats): string[] {
   if (s.challengesCreated >= 1) out.push("creator");
   if (s.level >= 10) out.push("level_10");
   if (s.approvedProofs >= 5) out.push("proof_pro");
+  if (s.referrals >= 3) out.push("recruiter");
   return out;
 }

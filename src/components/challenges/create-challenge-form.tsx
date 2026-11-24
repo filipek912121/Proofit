@@ -9,7 +9,7 @@ import { createChallengeAction } from "@/lib/actions/challenges";
 import { DURATION_OPTIONS, LIMITS, XP_RULES } from "@/lib/config/game";
 import { CATEGORIES, CATEGORY_META, DIFFICULTIES, DIFFICULTY_META } from "@/lib/config/taxonomy";
 import type { Category, Difficulty } from "@/lib/types";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { cn } from "@/components/ui/cn";
 import { Field, FormAlert, Input, Textarea } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
@@ -29,14 +29,14 @@ export interface CreateDefaults {
 function Toggle({ name, label, hint, defaultChecked, disabled, icon }: { name: string; label: string; hint?: string; defaultChecked?: boolean; disabled?: boolean; icon?: React.ReactNode }) {
   const t = useT();
   return (
-    <label className={cn("flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3 ring-1 ring-line", disabled ? "opacity-60" : "cursor-pointer hover:ring-line-strong")}>
+    <label className={cn("flex items-center gap-3 rounded-xl bg-tint/[0.03] px-4 py-3 ring-1 ring-line", disabled ? "opacity-60" : "cursor-pointer hover:ring-line-strong")}>
       {icon}
       <span className="flex-1">
         <span className="block text-sm font-medium">{t(label)}</span>
         {hint && <span className="block text-xs text-subtle">{t(hint)}</span>}
       </span>
       <input type="checkbox" name={name} defaultChecked={defaultChecked} disabled={disabled} className="peer sr-only" />
-      <span className="relative h-6 w-11 shrink-0 rounded-full bg-white/10 transition peer-checked:bg-violet peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" aria-hidden />
+      <span className="relative h-6 w-11 shrink-0 rounded-full bg-tint/10 transition peer-checked:bg-violet peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" aria-hidden />
     </label>
   );
 }
@@ -48,7 +48,7 @@ export function CreateChallengeForm({
   defaults = {},
 }: {
   squads: { id: string; name: string }[];
-  friends: { id: string; displayName: string; username: string; avatarColor: string }[];
+  friends: { id: string; displayName: string; username: string; avatarColor: string; avatarUrl: string | null; avatarFrame: string }[];
   isPremium: boolean;
   defaults?: CreateDefaults;
 }) {
@@ -85,7 +85,7 @@ export function CreateChallengeForm({
                 const m = DIFFICULTY_META[d];
                 const r = XP_RULES.difficultyRange[d];
                 return (
-                  <label key={d} className={cn("cursor-pointer rounded-xl p-3 ring-1 transition", difficulty === d ? cn(m.bg, m.ring, "ring-2") : "bg-white/[0.03] ring-line hover:ring-line-strong")}>
+                  <label key={d} className={cn("cursor-pointer rounded-xl p-3 ring-1 transition", difficulty === d ? cn(m.bg, m.ring, "ring-2") : "bg-tint/[0.03] ring-line hover:ring-line-strong")}>
                     <input
                       type="radio"
                       name="difficulty"
@@ -140,7 +140,7 @@ export function CreateChallengeForm({
               {DURATION_OPTIONS.map((d) => (
                 <label key={d.days} className="cursor-pointer">
                   <input type="radio" name="durationDays" value={d.days} defaultChecked={(defaults.durationDays ?? 7) === d.days} className="peer sr-only" />
-                  <span className="block rounded-xl bg-white/[0.03] p-3 text-center ring-1 ring-line transition peer-checked:bg-electric/15 peer-checked:ring-electric/50 peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2">
+                  <span className="block rounded-xl bg-tint/[0.03] p-3 text-center ring-1 ring-line transition peer-checked:bg-electric/15 peer-checked:ring-electric/50 peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2">
                     <span className="block text-sm font-semibold break-words">{t(d.label)}</span>
                     <span className="block text-xs text-muted">{t.p(d.days, "{n} day", "{n} days")}</span>
                   </span>
@@ -197,7 +197,7 @@ export function CreateChallengeForm({
           </div>
           {squads.length > 0 && (
             <Field label={t("Squad challenge (optional)")} htmlFor="squadId" hint={t("Only squad members can see and join it.")}>
-              <select id="squadId" name="squadId" value={squadId} onChange={(e) => setSquadId(e.target.value)} className="w-full rounded-xl bg-white/[0.04] px-4 py-3 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60">
+              <select id="squadId" name="squadId" value={squadId} onChange={(e) => setSquadId(e.target.value)} className="w-full rounded-xl bg-tint/[0.04] px-4 py-3 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60">
                 <option value="">{t("No squad")}</option>
                 {squads.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -226,9 +226,9 @@ export function CreateChallengeForm({
             <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
               {friends.map((f) => (
                 <li key={f.id}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-white/5">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-tint/5">
                     <input type="checkbox" name="invite" value={f.id} className="h-4 w-4 accent-violet" />
-                    <Avatar name={f.displayName} color={f.avatarColor} size={28} />
+                    <Avatar {...avatarOf(f)} size={28} />
                     <span className="min-w-0 text-sm">
                       <span className="block truncate">{f.displayName}</span>
                       <span className="block truncate text-xs text-subtle">@{f.username}</span>

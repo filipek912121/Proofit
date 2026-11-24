@@ -65,6 +65,14 @@ export const supabaseStore: Store = {
     return many(q.limit(1000));
   },
   updateProfile: (id, patch) => update("profiles", id, patch),
+  listReferrals: (referrerId) => many(db().from("profiles").select("*").eq("referred_by", referrerId).limit(500)),
+  async uploadAvatar(userId, file) {
+    const ext = (file.type.split("/")[1] || "jpg").replace(/[^a-z0-9]/g, "");
+    const path = `${userId}/${randomUUID()}.${ext}`;
+    const { error } = await db().storage.from("avatars").upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw new Error(`Upload failed: ${error.message}`);
+    return db().storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  },
 
   getChallenge: (id) => one(db().from("challenges").select("*").eq("id", id).maybeSingle()),
   listChallenges: (q) => {

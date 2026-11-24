@@ -2,7 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import { Crown, Handshake } from "lucide-react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { Pill } from "@/components/ui/badges";
 import { cn } from "@/components/ui/cn";
 import { cancelDuelAction, respondDuelAction } from "@/lib/actions/social";
@@ -28,7 +28,7 @@ export async function DuelCard({ v }: { v: DuelView }) {
       </div>
       <Link href={`/duels/${d.id}`} className="mt-4 flex items-center gap-3" aria-label={t("Open duel")}>
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <Avatar name={v.me.displayName} color={v.me.avatarColor} size={36} />
+          <Avatar {...avatarOf(v.me)} size={36} />
           <span className="truncate text-sm">{t("You")}</span>
           {won && <Crown className="h-4 w-4 text-gold" aria-label={t("Winner")} />}
         </div>
@@ -40,11 +40,11 @@ export async function DuelCard({ v }: { v: DuelView }) {
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           {lost && <Crown className="h-4 w-4 text-gold" aria-label={t("Winner")} />}
           <span className="truncate text-right text-sm">{v.opponent.displayName}</span>
-          <Avatar name={v.opponent.displayName} color={v.opponent.avatarColor} size={36} />
+          <Avatar {...avatarOf(v.opponent)} size={36} />
         </div>
       </Link>
       {(d.status === "active" || d.status === "completed") && (
-        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/5" aria-hidden>
+        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-tint/5" aria-hidden>
           <div className="bg-gradient-to-r from-violet to-electric transition-all" style={{ width: `${(v.myScore / total) * 100}%` }} />
           <div className="flex-1 bg-extreme/50" />
         </div>

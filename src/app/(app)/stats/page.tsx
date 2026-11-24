@@ -23,6 +23,7 @@ const SOURCE_LABEL: Record<string, string> = {
   challenge_complete: "Finish bonus",
   duel_win: "Duel wins",
   achievement: "Achievements",
+  referral: "Referrals",
 };
 
 export default async function StatsPage() {
@@ -79,7 +80,7 @@ export default async function StatsPage() {
         <div className="flex h-44 items-end gap-[3px]" role="img" aria-label={t("Daily XP over 30 days, best day {n} XP", { n: s.bestDay.xp })}>
           {s.daily.map((d) => (
             <div key={d.day} className="group relative flex h-full flex-1 items-end">
-              <div className={cn("w-full rounded-t-[4px] transition-all", d.xp ? "bg-gradient-to-t from-violet to-electric group-hover:from-violet-2" : "bg-white/[0.06]")} style={{ height: `${d.xp ? Math.max(6, (d.xp / max) * 100) : 3}%` }} />
+              <div className={cn("w-full rounded-t-[4px] transition-all", d.xp ? "bg-gradient-to-t from-violet to-electric group-hover:from-violet-2" : "bg-tint/[0.06]")} style={{ height: `${d.xp ? Math.max(6, (d.xp / max) * 100) : 3}%` }} />
               <span className="pointer-events-none absolute -top-7 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-ink-3 px-2 py-1 text-[10px] ring-1 ring-line group-hover:block">
                 {d.day.slice(5)} · {d.xp} XP
               </span>

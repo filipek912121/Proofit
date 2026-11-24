@@ -78,6 +78,13 @@ The UI is fully bilingual. **Polish is the default**; visitors whose browser pre
 - Plurals: `t.p(n, "{n} day", "{n} days")` with Polish `one|few|many` forms in the dictionary (`1 dzień | 2 dni | 5 dni`).
 - Official/seed challenge content is translated too; user-written content is shown as written.
 
+## Profiles, themes & referrals
+
+- **Profile photo:** upload from Settings; the photo is cropped/resized to 320 px on the device, then type-checked on the server (Supabase bucket `avatars`).
+- **Decorations by level:** avatar frames and profile backgrounds unlock with XP level (`src/lib/config/cosmetics.ts`); the server rejects locked choices.
+- **Themes:** dark (default), light, or follow the device — toggle in the sidebar, Settings or Profile.
+- **Referral rewards:** every user has a link `/signup?ref=<username>`. After the invited friend's first approved check-in the inviter gets +20 XP and the friend +10 XP (max 20 rewarded friends, one claim per friend; see `REFERRAL_RULES`). Inviting 3 friends unlocks the *Recruiter* achievement.
+
 ## Install on a phone
 
 PROOFIT is a **PWA** (web app manifest + icons): once deployed (e.g. Vercel), open the link on the phone and choose **"Add to Home screen"** (Android Chrome) or **Share → "Add to Home Screen"** (iPhone Safari). It then opens full-screen with its own icon, like a native app.

@@ -18,7 +18,7 @@ export async function ChallengeCard({ c, index = 0 }: { c: Card; index?: number 
   return (
     <Link
       href={`/challenges/${c.id}`}
-      className="group glass tap relative flex flex-col overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:bg-white/[0.06] animate-rise"
+      className="group glass tap relative flex flex-col overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:bg-tint/[0.06] animate-rise"
       style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}
     >
       <span className={cn("pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-40", m.dot)} aria-hidden />

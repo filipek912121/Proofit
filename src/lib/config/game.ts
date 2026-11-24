@@ -66,6 +66,14 @@ export const PLAN_LIMITS = {
   },
 } as const;
 
+/** Referral program: both people are rewarded once the invited friend makes their first approved check-in. */
+export const REFERRAL_RULES = {
+  inviterXp: 20,
+  inviteeXp: 10,
+  /** Max number of friends a user can be rewarded for (anti-abuse). */
+  maxRewardedReferrals: 20,
+} as const;
+
 export const PREMIUM_PRICE = { amount: 19.99, currency: "PLN", interval: "month" } as const;
 
 export const DURATION_OPTIONS = [

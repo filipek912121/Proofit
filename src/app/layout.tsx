@@ -1,5 +1,6 @@
 import { getT } from "@/lib/i18n/server";
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { I18nProvider } from "@/lib/i18n/client";
@@ -29,8 +30,10 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
+  const saved = (await cookies()).get("proofit_theme")?.value;
+  const theme = saved === "light" || saved === "system" ? saved : "dark";
   return (
-    <html lang={t.locale} className={`${inter.variable} ${grotesk.variable}`}>
+    <html lang={t.locale} data-theme={theme} suppressHydrationWarning className={`${inter.variable} ${grotesk.variable}`}>
       <body>
         <div className="app-backdrop" aria-hidden />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-violet focus:px-4 focus:py-2">

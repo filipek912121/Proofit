@@ -42,7 +42,7 @@ export default async function ReviewPage() {
                   createdAt: q.proof.createdAt,
                   day: q.completion?.day ?? null,
                   challenge: { id: q.challenge.id, title: q.challenge.title, difficulty: q.challenge.difficulty, tasks: q.challenge.tasks },
-                  submitter: { displayName: q.submitter.displayName, username: q.submitter.username, avatarColor: q.submitter.avatarColor },
+                  submitter: { displayName: q.submitter.displayName, username: q.submitter.username, avatarColor: q.submitter.avatarColor, avatarUrl: q.submitter.avatarUrl ?? null, avatarFrame: q.submitter.avatarFrame ?? "none" },
                 }}
               />
             ))}

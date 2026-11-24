@@ -35,13 +35,19 @@ export function LoginForm({ next, demo }: { next?: string; demo: boolean }) {
   );
 }
 
-export function SignupForm({ demo }: { demo: boolean }) {
+export function SignupForm({ demo, referrer }: { demo: boolean; referrer?: { code: string; name: string } | null }) {
   const t = useT();
   const [state, action] = useActionState(signUpAction, null);
   const fe = state && !state.ok ? state.fieldErrors : undefined;
   if (state?.ok) return <FormAlert tone="success">{state.message}</FormAlert>;
   return (
     <form action={action} className="space-y-4">
+      {referrer && (
+        <>
+          <input type="hidden" name="ref" value={referrer.code} />
+          <FormAlert tone="success">{t("{name} invited you — you both get bonus XP after your first check-in!", { name: referrer.name })}</FormAlert>
+        </>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t("Display name")} htmlFor="displayName" error={fe?.displayName}>
           <Input id="displayName" name="displayName" autoComplete="name" required minLength={2} maxLength={40} invalid={Boolean(fe?.displayName)} />

@@ -39,7 +39,7 @@ export function ChallengeFilters() {
   const chip = (active: boolean) =>
     cn(
       "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold ring-1 transition",
-      active ? "bg-white/10 text-fg ring-line-strong" : "text-muted ring-line hover:text-fg hover:ring-line-strong",
+      active ? "bg-tint/10 text-fg ring-line-strong" : "text-muted ring-line hover:text-fg hover:ring-line-strong",
     );
 
   return (
@@ -63,7 +63,7 @@ export function ChallengeFilters() {
         <label htmlFor="sort" className="sr-only">
           {t("Sort")}
         </label>
-        <select id="sort" value={sort} onChange={(e) => set("sort", e.target.value === "popular" ? null : e.target.value)} className="w-32 shrink-0 rounded-xl bg-white/[0.04] px-3 py-3 text-sm text-fg ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60 sm:w-40">
+        <select id="sort" value={sort} onChange={(e) => set("sort", e.target.value === "popular" ? null : e.target.value)} className="w-32 shrink-0 rounded-xl bg-tint/[0.04] px-3 py-3 text-sm text-fg ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60 sm:w-40">
           <option value="popular">{t("Popular")}</option>
           <option value="new">{t("Newest")}</option>
           <option value="xp">{t("Most XP")}</option>

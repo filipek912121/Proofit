@@ -22,6 +22,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     displayName: profile.displayName,
     username: profile.username,
     avatarColor: profile.avatarColor,
+    avatarUrl: profile.avatarUrl,
+    avatarFrame: profile.avatarFrame,
     level: lv.level,
     levelProgress: lv.progress,
     xp: profile.xp,

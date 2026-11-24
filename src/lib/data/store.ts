@@ -52,6 +52,10 @@ export interface Store {
   getProfileByUsername(username: string): Promise<Profile | null>;
   listProfiles(ids?: string[]): Promise<Profile[]>;
   updateProfile(id: string, patch: Partial<Profile>): Promise<Profile>;
+  /** Profiles that signed up with this user's referral link. */
+  listReferrals(referrerId: string): Promise<Profile[]>;
+  /** Stores an avatar image and returns a URL that can be shown publicly. */
+  uploadAvatar(userId: string, file: File): Promise<string>;
 
   // challenges
   getChallenge(id: string): Promise<Challenge | null>;

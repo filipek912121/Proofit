@@ -128,10 +128,31 @@ export async function respondInviteAction(inviteId: string, accept: boolean): Pr
 }
 
 export async function updateProfileAction(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
-  const parsed = profileSchema.safeParse({ displayName: fd.get("displayName"), bio: fd.get("bio") ?? "", avatarColor: fd.get("avatarColor") });
+  const parsed = profileSchema.safeParse({
+    displayName: fd.get("displayName"),
+    bio: fd.get("bio") ?? "",
+    avatarColor: fd.get("avatarColor"),
+    avatarFrame: fd.get("avatarFrame") ?? "none",
+    banner: fd.get("banner") ?? "default",
+  });
   if (!parsed.success) return localize({ ok: false, error: "Please fix the highlighted fields.", fieldErrors: zodFieldErrors(parsed.error) });
   return authed(async (userId) => {
     await profile.updateProfile(userId, parsed.data);
     return done("Profile saved.");
+  });
+}
+
+export async function uploadAvatarAction(fd: FormData): Promise<ActionResult> {
+  const file = fd.get("avatar");
+  return authed(async (userId) => {
+    await profile.setAvatarPhoto(userId, file instanceof File ? file : null);
+    return done("Profile photo updated.");
+  });
+}
+
+export async function removeAvatarAction(): Promise<ActionResult> {
+  return authed(async (userId) => {
+    await profile.setAvatarPhoto(userId, null);
+    return done("Profile photo removed.");
   });
 }

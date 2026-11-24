@@ -5,15 +5,21 @@ import { SignupForm } from "@/components/auth-forms";
 import { FormAlert } from "@/components/ui/field";
 import { getCurrentProfile } from "@/lib/auth";
 import { isDemoMode } from "@/lib/env";
+import { getStore } from "@/lib/data";
+import { resolveReferrer } from "@/lib/services/referrals";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("Sign up") };
 }
 
-export default async function SignupPage() {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
   const t = await getT();
   if (await getCurrentProfile()) redirect("/dashboard");
+  const { ref } = await searchParams;
+  const refId = await resolveReferrer(ref);
+  const refProfile = refId ? await getStore().getProfile(refId) : null;
+  const referrer = refProfile ? { code: refProfile.username, name: refProfile.displayName } : null;
   const demo = isDemoMode();
   return (
     <>
@@ -21,10 +27,10 @@ export default async function SignupPage() {
       <p className="mb-6 mt-1 text-sm text-muted">{t("Challenge. Compete. Win.")}</p>
       {demo && (
         <div className="mb-5">
-          <FormAlert tone="info">Demo mode: creates a temporary account in server memory (no email or password needed). It resets when the server restarts.</FormAlert>
+          <FormAlert tone="info">{t("Demo mode: creates a temporary account in server memory (no email or password needed). It resets when the server restarts.")}</FormAlert>
         </div>
       )}
-      <SignupForm demo={demo} />
+      <SignupForm demo={demo} referrer={referrer} />
     </>
   );
 }

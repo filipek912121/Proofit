@@ -4,7 +4,7 @@ import { Crown, Trophy, UserCheck, UserPlus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { Card, PageHeader } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
@@ -33,7 +33,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const rows = await leaderboard(me.id, scope, period);
   const podium = rows.slice(0, 3);
   const href = (s: LeaderboardScope, p: LeaderboardPeriod) => `/leaderboard?scope=${s}&period=${p}`;
-  const tab = (active: boolean) => cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-white/10 text-fg" : "text-muted hover:text-fg");
+  const tab = (active: boolean) => cn("rounded-xl px-4 py-2 text-sm font-semibold transition", active ? "bg-tint/10 text-fg" : "text-muted hover:text-fg");
   const mine = rows.find((r) => r.isMe);
 
   return (
@@ -71,7 +71,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   <Link key={r.profile.id} href={r.isMe ? "/profile" : `/u/${r.profile.username}`} className="flex flex-col items-center gap-2 animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
                     <div className="relative">
                       {place === 1 && <Crown className="absolute -top-6 left-1/2 h-6 w-6 -translate-x-1/2 text-gold drop-shadow-[0_0_10px_#fbbf24]" aria-hidden />}
-                      <Avatar name={r.profile.displayName} color={r.profile.avatarColor} size={place === 1 ? 64 : 52} ring={r.isMe} />
+                      <Avatar {...avatarOf(r.profile)} size={place === 1 ? 64 : 52} ring={r.isMe} />
                     </div>
                     <p className="max-w-full truncate text-center text-xs font-semibold sm:text-sm">{r.isMe ? t("You") : r.profile.displayName.split(" ")[0]}</p>
                     <div className={cn("flex w-full flex-col items-center justify-start rounded-t-2xl bg-gradient-to-b pt-3 ring-1", h, tone)}>
@@ -88,10 +88,10 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               <div key={r.profile.id} className={cn("flex items-center gap-3 px-4 py-3", r.isMe && "bg-violet/[0.1]")}>
                 <span className={cn("w-7 text-center font-display font-bold tabular-nums", r.rank === 1 ? "text-gold" : r.rank === 2 ? "text-zinc-300" : r.rank === 3 ? "text-orange-400" : "text-subtle")}>{r.rank}</span>
                 <Link href={r.isMe ? "/profile" : `/u/${r.profile.username}`} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
-                  <Avatar name={r.profile.displayName} color={r.profile.avatarColor} size={38} />
+                  <Avatar {...avatarOf(r.profile)} size={38} />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold">
-                      {r.profile.displayName} {r.isMe && <span className="text-violet-2">(you)</span>}
+                      {r.profile.displayName} {r.isMe && <span className="text-violet-2">{t("(you)")}</span>}
                     </span>
                     <span className="block text-xs text-subtle">
                       {t("Lv {n}", { n: r.level })} · @{r.profile.username}

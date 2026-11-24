@@ -1,6 +1,6 @@
 import "server-only";
 import { ACHIEVEMENTS, qualifyingAchievements } from "@/lib/config/achievements";
-import { XP_RULES } from "@/lib/config/game";
+import { REFERRAL_RULES, XP_RULES } from "@/lib/config/game";
 import { DuplicateError, getStore } from "@/lib/data";
 import { addDays, dayKey } from "@/lib/engine/dates";
 import { levelFromXp } from "@/lib/engine/levels";
@@ -22,7 +22,7 @@ export async function awardXp(e: Omit<XpEvent, "id" | "createdAt">): Promise<num
 /** XP already earned today from sources that count towards the daily cap. */
 export async function xpEarnedOn(userId: string, day: string): Promise<number> {
   const events = await getStore().listXpEvents({ userId, day });
-  return events.filter((e) => e.reason !== "achievement" && e.reason !== "duel_win").reduce((s, e) => s + e.amount, 0);
+  return events.filter((e) => e.reason !== "achievement" && e.reason !== "duel_win" && e.reason !== "referral").reduce((s, e) => s + e.amount, 0);
 }
 
 export function participationWindow(p: Participation, ch: Challenge) {
@@ -65,7 +65,7 @@ export async function grantCompletion(completion: Completion, ch: Challenge): Pr
   const soloPrivate = ch.visibility === "private" && !ch.isOfficial && ch.creatorId === userId && participants <= 1;
 
   const dayEvents = await store.listXpEvents({ userId, day: today });
-  const earnedToday = dayEvents.filter((e) => e.reason !== "achievement" && e.reason !== "duel_win").reduce((s, e) => s + e.amount, 0);
+  const earnedToday = dayEvents.filter((e) => e.reason !== "achievement" && e.reason !== "duel_win" && e.reason !== "referral").reduce((s, e) => s + e.amount, 0);
   const streakRef = `streak:${completion.day}`;
   const alreadyBonus = (await store.listXpEvents({ userId, sinceDay: completion.day })).some(
     (e) => e.reason === "streak_bonus" && e.refId === streakRef,
@@ -94,7 +94,27 @@ export async function grantCompletion(completion: Completion, ch: Challenge): Pr
       day: today,
     });
   }
+  await maybeRewardReferral(userId);
   return { base, streakBonus, completionBonus, capped: xp.capped, challengeCompleted };
+}
+
+/**
+ * Referral reward: paid once, after the invited user's first approved check-in.
+ * Both rewards are keyed in the XP ledger, so they can never be claimed twice.
+ */
+export async function maybeRewardReferral(userId: string) {
+  const store = getStore();
+  const me = await store.getProfile(userId);
+  if (!me?.referredBy || me.referredBy === userId) return;
+  const inviter = await store.getProfile(me.referredBy);
+  if (!inviter) return;
+  const day = dayKey();
+  const already = (await store.listXpEvents({ userId: inviter.id })).filter((e) => e.reason === "referral" && e.refId?.startsWith("ref:"));
+  if (already.some((e) => e.refId === `ref:${userId}`)) return;
+  if (already.length < REFERRAL_RULES.maxRewardedReferrals)
+    await awardXp({ userId: inviter.id, amount: REFERRAL_RULES.inviterXp, reason: "referral", refId: `ref:${userId}`, day });
+  await awardXp({ userId, amount: REFERRAL_RULES.inviteeXp, reason: "referral", refId: `welcome:${userId}`, day });
+  await evaluateAchievements(inviter.id);
 }
 
 /** Recalculate stats and unlock any newly earned achievements. */
@@ -111,6 +131,7 @@ export async function evaluateAchievements(userId: string): Promise<Achievement[
     store.listProofs({ userId, status: "approved" }),
     store.listAchievements(),
   ]);
+  const referrals = (await store.listXpEvents({ userId })).filter((e) => e.reason === "referral" && e.refId?.startsWith("ref:")).length;
   if (!profile) return [];
   const completed = participations.filter((p) => p.status === "completed");
   const completedChallenges = completed.length ? await store.listChallenges({ ids: completed.map((p) => p.challengeId) }) : [];
@@ -125,6 +146,7 @@ export async function evaluateAchievements(userId: string): Promise<Achievement[
     challengesCreated: created.filter((c) => c.creatorId === userId).length,
     level: levelFromXp(profile.xp).level,
     approvedProofs: approvedProofs.length,
+    referrals,
   });
   const have = new Set(owned.map((o) => o.achievementId));
   const unlocked: Achievement[] = [];

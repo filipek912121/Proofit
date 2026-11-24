@@ -110,6 +110,9 @@ export function createSeed(): DemoDb {
         : ["Morning person.", "Chasing streaks.", "Books > scrolling.", "Saving for a trip.", "Small steps daily."][i % 5],
     avatarColor,
     avatarUrl: null,
+    avatarFrame: "none",
+    banner: "default",
+    referredBy: id === "demo-maja" || id === "demo-kuba" ? DEMO_USER_ID : null,
     xp: 0,
     currentStreak: 0,
     longestStreak: 0,
@@ -351,6 +354,12 @@ export function createSeed(): DemoDb {
   for (const [userId, achievementId, ago] of achievementBonus) {
     const a = ACHIEVEMENTS.find((x) => x.id === achievementId)!;
     xpEvents.push({ id: `xp-ach-${userId}-${achievementId}`, userId, amount: a.xpBonus, reason: "achievement", refId: `ach:${achievementId}`, day: addDays(today, -ago), createdAt: isoDaysAgo(ago) });
+  }
+
+  // Referral program: Alex invited Maja and Kuba, who both checked in.
+  for (const [friend, ago] of [["demo-maja", 25], ["demo-kuba", 24]] as const) {
+    xpEvents.push({ id: `xp-ref-${friend}`, userId: DEMO_USER_ID, amount: 20, reason: "referral", refId: `ref:${friend}`, day: addDays(today, -ago), createdAt: isoDaysAgo(ago) });
+    xpEvents.push({ id: `xp-welcome-${friend}`, userId: friend, amount: 10, reason: "referral", refId: `welcome:${friend}`, day: addDays(today, -ago), createdAt: isoDaysAgo(ago) });
   }
 
   // Derive profile totals + streaks from the ledger / completions.

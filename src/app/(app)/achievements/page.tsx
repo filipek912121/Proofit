@@ -35,7 +35,7 @@ export default async function AchievementsPage() {
             )}
             style={{ animationDelay: `${i * 40}ms` }}
           >
-            <span className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1", a.unlockedAt ? "bg-black/20 ring-white/15" : "bg-white/[0.03] ring-line")}>
+            <span className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1", a.unlockedAt ? "bg-black/20 ring-tint/15" : "bg-tint/[0.03] ring-line")}>
               {a.unlockedAt ? <Icon name={a.icon} className="h-7 w-7" /> : <Lock className="h-6 w-6 opacity-60" aria-hidden />}
             </span>
             <div className="min-w-0">

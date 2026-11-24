@@ -11,6 +11,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 import { localize } from "./run";
 import { signInSchema, signUpSchema, usernameSchema, zodFieldErrors } from "@/lib/validation";
+import { resolveReferrer } from "@/lib/services/referrals";
 
 const demoCookieOpts = { httpOnly: true, sameSite: "lax" as const, path: "/", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 7 };
 
@@ -44,6 +45,8 @@ export async function signUpAction(_prev: ActionResult | null, fd: FormData): Pr
       return localize({ ok: false, error: "Check your details.", fieldErrors: { ...(u.success ? {} : { username: u.error.issues[0].message }), ...(name.length < 2 ? { displayName: "At least 2 characters" } : {}) } });
     if (await getStore().getProfileByUsername(u.data)) return localize({ ok: false, error: "Username taken.", fieldErrors: { username: "Already taken" } });
     const id = createDemoProfile(u.data, name.slice(0, 40));
+    const referrer = await resolveReferrer(fd.get("ref") as string | null);
+    if (referrer && referrer !== id) await getStore().updateProfile(id, { referredBy: referrer });
     const jar = await cookies();
     jar.set(DEMO_COOKIE, id, demoCookieOpts);
     jar.set(DEMO_PROFILE_COOKIE, JSON.stringify({ u: u.data, n: name.slice(0, 40) }), demoCookieOpts);
@@ -65,6 +68,9 @@ export async function signUpAction(_prev: ActionResult | null, fd: FormData): Pr
     },
   });
   if (error) return localize({ ok: false, error: error.message });
+  // Remember who invited this user (the profile row is created by a DB trigger on sign-up).
+  const referrer = await resolveReferrer(fd.get("ref") as string | null);
+  if (referrer && data.user && referrer !== data.user.id) await getStore().updateProfile(data.user.id, { referredBy: referrer });
   if (!data.session) return localize({ ok: true, message: "Check your inbox to confirm your email, then log in." });
   redirect("/dashboard?welcome=1");
 }

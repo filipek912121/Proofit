@@ -402,7 +402,7 @@ async function canReview(reviewerId: string, ch: Challenge): Promise<boolean> {
 export interface ReviewItem {
   proof: ProofSubmission;
   challenge: Challenge;
-  submitter: { id: string; displayName: string; username: string; avatarColor: string; avatarUrl: string | null };
+  submitter: { id: string; displayName: string; username: string; avatarColor: string; avatarUrl: string | null; avatarFrame?: string };
   fileUrl: string | null;
   completion: Completion | null;
 }

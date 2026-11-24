@@ -13,7 +13,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
-    <div className={cn("inline-flex items-center gap-1 rounded-xl bg-white/[0.04] p-1 ring-1 ring-line", pending && "opacity-60", className)} role="group" aria-label={t("Language")}>
+    <div className={cn("inline-flex items-center gap-1 rounded-xl bg-tint/[0.04] p-1 ring-1 ring-line", pending && "opacity-60", className)} role="group" aria-label={t("Language")}>
       <Languages className="ml-1.5 h-4 w-4 text-subtle" aria-hidden />
       {LOCALES.map((l) => (
         <button
@@ -27,7 +27,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
               router.refresh();
             })
           }
-          className={cn("rounded-lg px-2.5 py-1 text-xs font-bold uppercase transition", t.locale === l ? "bg-white/10 text-fg" : "text-subtle hover:text-fg")}
+          className={cn("rounded-lg px-2.5 py-1 text-xs font-bold uppercase transition", t.locale === l ? "bg-tint/10 text-fg" : "text-subtle hover:text-fg")}
         >
           {l}
         </button>

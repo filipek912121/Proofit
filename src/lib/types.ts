@@ -17,6 +17,12 @@ export interface Profile {
   bio: string;
   avatarColor: string;
   avatarUrl: string | null;
+  /** Cosmetic avatar frame id (see config/cosmetics.ts), unlocked by level. */
+  avatarFrame: string;
+  /** Cosmetic profile banner id, unlocked by level. */
+  banner: string;
+  /** Who invited this user (referral program). */
+  referredBy: string | null;
   xp: number;
   currentStreak: number;
   longestStreak: number;
@@ -151,7 +157,7 @@ export interface XpEvent {
   id: string;
   userId: string;
   amount: number;
-  reason: "completion" | "streak_bonus" | "achievement" | "duel_win" | "challenge_complete";
+  reason: "completion" | "streak_bonus" | "achievement" | "duel_win" | "challenge_complete" | "referral";
   refId: string | null;
   day: string;
   createdAt: string;

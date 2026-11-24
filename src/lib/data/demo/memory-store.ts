@@ -41,6 +41,14 @@ export const memoryStore: Store = {
   async updateProfile(id, patch) {
     return patchById(db().profiles, id, patch);
   },
+  async listReferrals(referrerId) {
+    return clone(db().profiles.filter((p) => p.referredBy === referrerId));
+  },
+  async uploadAvatar(_userId, file) {
+    // Demo: keep the (already resized) image inline as a data URL.
+    const buf = Buffer.from(await file.arrayBuffer());
+    return `data:${file.type};base64,${buf.toString("base64")}`;
+  },
 
   async getChallenge(id) {
     return clone(db().challenges.find((c) => c.id === id) ?? null);
@@ -323,6 +331,9 @@ export function createDemoProfile(username: string, displayName: string, existin
     bio: "",
     avatarColor: colors[Math.floor(Math.random() * colors.length)],
     avatarUrl: null,
+    avatarFrame: "none",
+    banner: "default",
+    referredBy: null,
     xp: 0,
     currentStreak: 0,
     longestStreak: 0,

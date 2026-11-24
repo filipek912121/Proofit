@@ -5,6 +5,8 @@ import { addDays, dayKey } from "@/lib/engine/dates";
 import { liveStreak } from "@/lib/engine/xp";
 import type { Category, Challenge, Participation } from "@/lib/types";
 import { getEntitlements } from "./entitlements";
+import { AVATAR_FRAMES, isUnlocked, PROFILE_BANNERS } from "@/lib/config/cosmetics";
+import { levelFromXp } from "@/lib/engine/levels";
 import { AppError } from "./errors";
 
 export const FREE_AVATAR_COLORS = ["#8b5cf6", "#3b82f6", "#06b6d4", "#ec4899", "#22c55e", "#f59e0b"];
@@ -47,12 +49,54 @@ export async function profileOverview(profileId: string, viewerId: string) {
   };
 }
 
-export async function updateProfile(userId: string, input: { displayName: string; bio: string; avatarColor: string }) {
+export async function updateProfile(
+  userId: string,
+  input: { displayName: string; bio: string; avatarColor: string; avatarFrame: string; banner: string },
+) {
   const ent = await getEntitlements(userId);
   const allowed = ent.limits.profileCustomization ? [...FREE_AVATAR_COLORS, ...PREMIUM_AVATAR_COLORS] : FREE_AVATAR_COLORS;
   if (!allowed.includes(input.avatarColor)) throw new AppError("That colour is part of Premium profile customization.");
+  const me = await getStore().getProfile(userId);
+  if (!me) throw new AppError("User not found.");
+  const level = levelFromXp(me.xp).level;
+  const frame = AVATAR_FRAMES.find((f) => f.id === input.avatarFrame);
+  const banner = PROFILE_BANNERS.find((b) => b.id === input.banner);
+  if (!frame || !banner) throw new AppError("Invalid request.");
+  if (!isUnlocked(frame, level, ent.isPremium) || !isUnlocked(banner, level, ent.isPremium))
+    throw new AppError("Reach a higher level to unlock this decoration.");
   // Only safe, user-editable columns are ever written here — never xp/streak/admin/subscription.
-  return getStore().updateProfile(userId, { displayName: input.displayName, bio: input.bio, avatarColor: input.avatarColor });
+  return getStore().updateProfile(userId, {
+    displayName: input.displayName,
+    bio: input.bio,
+    avatarColor: input.avatarColor,
+    avatarFrame: frame.id,
+    banner: banner.id,
+  });
+}
+
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+
+/** Detects the real image type from the file's first bytes (never trust the browser's label). */
+function sniffImage(b: Uint8Array): "image/jpeg" | "image/png" | "image/webp" | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "image/png";
+  if (String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP") return "image/webp";
+  return null;
+}
+
+export async function setAvatarPhoto(userId: string, file: File | null) {
+  const store = getStore();
+  if (!file) {
+    await store.updateProfile(userId, { avatarUrl: null });
+    return;
+  }
+  if (file.size === 0) throw new AppError("Choose a photo to upload.");
+  if (file.size > AVATAR_MAX_BYTES) throw new AppError("Profile photo must be 2 MB or smaller.");
+  const type = sniffImage(new Uint8Array(await file.slice(0, 12).arrayBuffer()));
+  if (!type) throw new AppError("Upload a JPG, PNG or WEBP image.");
+  const clean = new File([await file.arrayBuffer()], `avatar.${type.split("/")[1]}`, { type });
+  const url = await store.uploadAvatar(userId, clean);
+  await store.updateProfile(userId, { avatarUrl: url });
 }
 
 /** Premium-only analytics. Callers must check entitlements first; this also enforces it. */

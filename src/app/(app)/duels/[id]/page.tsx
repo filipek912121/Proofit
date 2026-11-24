@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DuelCard } from "@/components/social/duel-card";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
@@ -39,7 +39,7 @@ export default async function DuelPage({ params }: { params: Promise<{ id: strin
           {[v.me, v.opponent].map((p, i) => (
             <div key={p.id} className={cn("flex flex-col items-center gap-2", i === 1 && "order-3")}>
               <div className="relative">
-                <Avatar name={p.displayName} color={p.avatarColor} size={72} ring={winner?.id === p.id} />
+                <Avatar {...avatarOf(p)} size={72} ring={winner?.id === p.id} />
                 {winner?.id === p.id && <Crown className="absolute -top-5 left-1/2 h-7 w-7 -translate-x-1/2 text-gold drop-shadow-[0_0_10px_#fbbf24]" aria-label={t("Winner")} />}
               </div>
               <p className="text-sm font-semibold">{i === 0 ? t("You") : p.displayName}</p>
