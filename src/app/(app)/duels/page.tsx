@@ -16,16 +16,25 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("Duels") };
 }
 
-export default async function DuelsPage({ searchParams }: { searchParams: Promise<{ challenge?: string }> }) {
+export default async function DuelsPage({ searchParams }: { searchParams: Promise<{ challenge?: string; opponent?: string }> }) {
   const t = await getT();
   const me = await requireUser();
-  const { challenge } = await searchParams;
+  const { challenge, opponent } = await searchParams;
   const [duels, myFriends, top, challenges] = await Promise.all([listDuels(me.id), friends(me.id), leaderboard(me.id, "global", "week"), exploreChallenges(me.id, {})]);
   const friendIds = new Set(myFriends.map((f) => f.id));
   const opponents = [
     ...myFriends.map((f) => ({ id: f.id, label: `${f.displayName} (@${f.username})`, group: "Friends" as const })),
     ...top.filter((r) => !r.isMe && !friendIds.has(r.profile.id)).slice(0, 10).map((r) => ({ id: r.profile.id, label: `${r.profile.displayName} (@${r.profile.username})`, group: "Suggested" as const })),
   ];
+  // Coming from "Duel" on a leaderboard/profile: preselect that person (added to the list if needed).
+  let preselected: string | undefined;
+  if (opponent && opponent !== me.id) {
+    const target = await getStore().getProfile(opponent.slice(0, 64));
+    if (target) {
+      preselected = target.id;
+      if (!opponents.some((o) => o.id === target.id)) opponents.unshift({ id: target.id, label: `${target.displayName} (@${target.username})`, group: "Suggested" as const });
+    }
+  }
   // Duels are visible to both players, so only public, non-squad challenges qualify.
   const duelable = challenges.filter((c) => c.visibility === "public" && !c.squadId && !c.isTemplate);
   const validDefault = challenge && (await getStore().getChallenge(challenge.slice(0, 64)))?.visibility === "public" ? challenge : undefined;
@@ -62,7 +71,7 @@ export default async function DuelsPage({ searchParams }: { searchParams: Promis
             <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
               <Swords className="h-5 w-5 text-extreme" aria-hidden />{" "}{t("New duel")}
             </h2>
-            <NewDuelForm opponents={opponents} challenges={duelable.map((c) => ({ id: c.id, title: c.title, durationDays: c.durationDays }))} defaultChallengeId={validDefault} />
+            <NewDuelForm opponents={opponents} challenges={duelable.map((c) => ({ id: c.id, title: c.title, durationDays: c.durationDays }))} defaultChallengeId={validDefault} defaultOpponentId={preselected} />
           </Card>
         </aside>
       </div>

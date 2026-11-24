@@ -1,30 +1,40 @@
 @import "tailwindcss";
 
+/*
+ * PROOFIT design tokens.
+ * Every colour used by the UI is a CSS variable so each theme (Dark Neon,
+ * Midnight, Light) can supply a complete palette. Components never hardcode
+ * theme colours — they use these tokens via Tailwind utilities.
+ */
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
+  /* Surfaces: ink = app background, ink-2 = cards, ink-3 = raised controls */
   --color-ink: #09090f;
-  --color-ink-2: #0e0e17;
-  --color-ink-3: #14141f;
-  --color-line: rgb(255 255 255 / 0.08);
-  --color-line-strong: rgb(255 255 255 / 0.14);
+  --color-ink-2: #111119;
+  --color-ink-3: #1a1a26;
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-line-strong: rgb(255 255 255 / 0.13);
+  /* Text */
   --color-fg: #f4f4fb;
+  --color-muted: #a1a1b5;
+  --color-subtle: #6d6d86;
+  /* Neutral overlay colour (white on dark themes, ink on light) */
   --color-tint: #ffffff;
-  --color-muted: #a0a0b8;
-  --color-subtle: #6b6b85;
 
+  /* Brand + supporting accents */
   --color-violet: #8b5cf6;
-  --color-violet-2: #a78bfa;
+  --color-violet-2: #b39dfa;
   --color-electric: #3b82f6;
   --color-cyan: #22d3ee;
+  --color-gold: #fbbf24;
 
+  /* Meaningful colours: difficulty + status */
   --color-easy: #22c55e;
   --color-medium: #3b82f6;
   --color-hard: #f97316;
   --color-extreme: #ef4444;
-
-  --color-gold: #fbbf24;
 
   --radius-xl2: 1.25rem;
 
@@ -40,6 +50,14 @@
   --animate-check: check-pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.6) both;
   --animate-nav-pending: nav-pending 0.9s ease-in-out infinite;
   --animate-float: float 3s ease-in-out infinite;
+  --animate-flame: flame 1.6s ease-in-out infinite;
+  --animate-podium: podium 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  --animate-rank-up: rank-up 1.6s ease-out both;
+  --animate-sheet: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-fade: fade-in 0.25s ease-out both;
+  --animate-bob: bob 2.8s ease-in-out infinite;
+  --animate-levelup: level-up 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  --animate-shine: shine 2.4s ease-in-out infinite;
 
   @keyframes rise {
     from { opacity: 0; transform: translateY(10px); }
@@ -84,40 +102,131 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
   }
+  @keyframes flame {
+    0%, 100% { transform: scale(1) rotate(-2deg); filter: drop-shadow(0 0 4px rgb(249 115 22 / 0.5)); }
+    50% { transform: scale(1.08) rotate(2deg); filter: drop-shadow(0 0 9px rgb(249 115 22 / 0.8)); }
+  }
+  @keyframes podium {
+    from { opacity: 0; transform: translateY(40px) scaleY(0.6); }
+    to { opacity: 1; transform: translateY(0) scaleY(1); }
+  }
+  @keyframes rank-up {
+    0% { background-color: rgb(34 197 94 / 0.25); }
+    100% { background-color: transparent; }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(-1.5deg); }
+  }
+  @keyframes level-up {
+    0% { opacity: 0; transform: scale(0.6); }
+    60% { opacity: 1; transform: scale(1.06); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes shine {
+    0% { transform: translateX(-120%) skewX(-20deg); }
+    60%, 100% { transform: translateX(220%) skewX(-20deg); }
+  }
   @keyframes confetti {
     0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
     100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
   }
+  @keyframes ring-fill {
+    from { stroke-dashoffset: var(--ring-c); }
+  }
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+  @keyframes antenna {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
 }
 
-/* ── Themes: dark (default), light, or follow the device ─────── */
+/* ── Themes ─────────────────────────────────────────────────────
+ * Dark Neon (default) — near-black with violet accents and soft glows.
+ * Midnight — deep navy, muted indigo accent, no neon.
+ * Light — clean, high-contrast daylight palette.
+ */
 :root {
-  --glass-from: rgb(255 255 255 / 0.055);
-  --glass-to: rgb(255 255 255 / 0.02);
-  --glass-strong-from: rgb(20 20 31 / 0.85);
-  --glass-strong-to: rgb(14 14 23 / 0.85);
-  --glass-shadow: none;
-  --grid-line: rgb(255 255 255 / 0.025);
+  --surface-bg: var(--color-ink-2);
+  --surface-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --raised-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  --nav-bg: rgb(9 9 15 / 0.88);
+  --backdrop-a: rgb(139 92 246 / 0.14);
+  --backdrop-b: rgb(59 130 246 / 0.10);
+  --grid-line: rgb(255 255 255 / 0.022);
   --skeleton-a: rgb(255 255 255 / 0.04);
   --skeleton-b: rgb(255 255 255 / 0.09);
+  --glow-opacity: 1;
+  --brand-from: #7c3aed;
+  --brand-to: #3b82f6;
+  --on-accent: #ffffff;
   color-scheme: dark;
 }
+
+:root[data-theme="midnight"] {
+  --color-ink: #0a101f;
+  --color-ink-2: #111a2e;
+  --color-ink-3: #19243c;
+  --color-line: rgb(148 163 184 / 0.12);
+  --color-line-strong: rgb(148 163 184 / 0.22);
+  --color-fg: #e7ecf6;
+  --color-muted: #9aa8bf;
+  --color-subtle: #66758e;
+  --color-tint: #cbd5e1;
+  --color-violet: #6d7ff2;
+  --color-violet-2: #a5b4fc;
+  --color-electric: #38bdf8;
+  --color-cyan: #5eead4;
+  --color-gold: #f2c35b;
+  --color-easy: #34d399;
+  --color-medium: #60a5fa;
+  --color-hard: #fb923c;
+  --color-extreme: #f87171;
+  --surface-shadow: 0 1px 0 rgb(203 213 225 / 0.04) inset;
+  --raised-shadow: 0 12px 30px -14px rgb(2 6 23 / 0.8);
+  --nav-bg: rgb(10 16 31 / 0.9);
+  --backdrop-a: rgb(99 102 241 / 0.08);
+  --backdrop-b: rgb(56 189 248 / 0.05);
+  --grid-line: rgb(148 163 184 / 0.025);
+  --skeleton-a: rgb(148 163 184 / 0.06);
+  --skeleton-b: rgb(148 163 184 / 0.13);
+  --glow-opacity: 0.35;
+  --brand-from: #4f46e5;
+  --brand-to: #0ea5e9;
+  color-scheme: dark;
+}
+
 :root[data-theme="light"] {
-  --color-ink: #f4f4f9;
+  --color-ink: #f3f4f8;
   --color-ink-2: #ffffff;
-  --color-ink-3: #ebebf3;
-  --color-line: rgb(20 20 50 / 0.10);
-  --color-line-strong: rgb(20 20 50 / 0.18);
-  --color-fg: #12121c;
-  --color-muted: #50516a;
-  --color-subtle: #74758c;
-  --color-tint: #1c1c40;
+  --color-ink-3: #eceef4;
+  --color-line: rgb(17 24 39 / 0.08);
+  --color-line-strong: rgb(17 24 39 / 0.16);
+  --color-fg: #111827;
+  --color-muted: #4b5563;
+  --color-subtle: #6b7280;
+  --color-tint: #1f2937;
+  --color-violet: #7c3aed;
   --color-violet-2: #6d28d9;
+  --color-electric: #2563eb;
+  --color-cyan: #0891b2;
   --color-gold: #b45309;
   --color-easy: #16a34a;
   --color-medium: #2563eb;
   --color-hard: #ea580c;
   --color-extreme: #dc2626;
+  /* Tailwind palette shades used for status text, darkened for contrast on white */
   --color-green-200: #166534;
   --color-green-300: #15803d;
   --color-red-200: #991b1b;
@@ -128,53 +237,18 @@
   --color-blue-300: #1d4ed8;
   --color-zinc-200: #3f3f46;
   --color-zinc-300: #52525b;
-  --glass-from: rgb(255 255 255 / 0.92);
-  --glass-to: rgb(255 255 255 / 0.74);
-  --glass-strong-from: rgb(255 255 255 / 0.96);
-  --glass-strong-to: rgb(250 250 255 / 0.94);
-  --glass-shadow: 0 1px 2px rgb(20 20 50 / 0.06), 0 8px 24px -12px rgb(20 20 50 / 0.18);
-  --grid-line: rgb(20 20 50 / 0.035);
-  --skeleton-a: rgb(20 20 50 / 0.05);
-  --skeleton-b: rgb(20 20 50 / 0.10);
+  --surface-shadow: 0 1px 2px rgb(17 24 39 / 0.05), 0 4px 16px -8px rgb(17 24 39 / 0.12);
+  --raised-shadow: 0 12px 32px -14px rgb(17 24 39 / 0.28);
+  --nav-bg: rgb(255 255 255 / 0.9);
+  --backdrop-a: rgb(124 58 237 / 0.06);
+  --backdrop-b: rgb(37 99 235 / 0.05);
+  --grid-line: rgb(17 24 39 / 0.03);
+  --skeleton-a: rgb(17 24 39 / 0.05);
+  --skeleton-b: rgb(17 24 39 / 0.1);
+  --glow-opacity: 0.25;
+  --brand-from: #7c3aed;
+  --brand-to: #2563eb;
   color-scheme: light;
-}
-@media (prefers-color-scheme: light) {
-  :root[data-theme="system"] {
-    --color-ink: #f4f4f9;
-    --color-ink-2: #ffffff;
-    --color-ink-3: #ebebf3;
-    --color-line: rgb(20 20 50 / 0.10);
-    --color-line-strong: rgb(20 20 50 / 0.18);
-    --color-fg: #12121c;
-    --color-muted: #50516a;
-    --color-subtle: #74758c;
-    --color-tint: #1c1c40;
-    --color-violet-2: #6d28d9;
-    --color-gold: #b45309;
-    --color-easy: #16a34a;
-    --color-medium: #2563eb;
-    --color-hard: #ea580c;
-    --color-extreme: #dc2626;
-    --color-green-200: #166534;
-    --color-green-300: #15803d;
-    --color-red-200: #991b1b;
-    --color-red-300: #b91c1c;
-    --color-orange-300: #c2410c;
-    --color-orange-400: #c2410c;
-    --color-blue-200: #1e40af;
-    --color-blue-300: #1d4ed8;
-    --color-zinc-200: #3f3f46;
-    --color-zinc-300: #52525b;
-    --glass-from: rgb(255 255 255 / 0.92);
-    --glass-to: rgb(255 255 255 / 0.74);
-    --glass-strong-from: rgb(255 255 255 / 0.96);
-    --glass-strong-to: rgb(250 250 255 / 0.94);
-    --glass-shadow: 0 1px 2px rgb(20 20 50 / 0.06), 0 8px 24px -12px rgb(20 20 50 / 0.18);
-    --grid-line: rgb(20 20 50 / 0.035);
-    --skeleton-a: rgb(20 20 50 / 0.05);
-    --skeleton-b: rgb(20 20 50 / 0.10);
-    color-scheme: light;
-  }
 }
 
 @layer base {
@@ -185,13 +259,13 @@
   body {
     background: var(--color-ink);
     color: var(--color-fg);
-    transition: background-color 0.3s ease, color 0.3s ease;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   ::selection {
-    background: rgb(139 92 246 / 0.45);
+    background: color-mix(in oklab, var(--color-violet) 40%, transparent);
   }
   :focus-visible {
     outline: 2px solid var(--color-violet-2);
@@ -202,16 +276,15 @@
 }
 
 @layer components {
-  /* Ambient neon backdrop */
+  /* Ambient backdrop — strength depends on the theme */
   .app-backdrop {
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(60rem 40rem at 10% -10%, rgb(139 92 246 / 0.16), transparent 60%),
-      radial-gradient(50rem 35rem at 110% 10%, rgb(59 130 246 / 0.13), transparent 60%),
-      radial-gradient(40rem 30rem at 50% 120%, rgb(34 211 238 / 0.06), transparent 60%),
+      radial-gradient(60rem 40rem at 10% -10%, var(--backdrop-a), transparent 60%),
+      radial-gradient(50rem 35rem at 110% 0%, var(--backdrop-b), transparent 60%),
       var(--color-ink);
   }
   .app-backdrop::after {
@@ -222,51 +295,68 @@
       linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 44px 44px;
-    mask-image: radial-gradient(ellipse at 50% 0%, black 20%, transparent 70%);
+    mask-image: radial-gradient(ellipse at 50% 0%, black 15%, transparent 65%);
   }
 
-  .glass {
-    background: linear-gradient(180deg, var(--glass-from), var(--glass-to));
+  /* Standard card surface (calm, solid — no heavy glass) */
+  .glass,
+  .surface {
+    background: var(--surface-bg);
     border: 1px solid var(--color-line);
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: var(--surface-shadow);
   }
+  /* Floating chrome: nav bars, sheets, toasts */
   .glass-strong {
-    background: linear-gradient(180deg, var(--glass-strong-from), var(--glass-strong-to));
+    background: var(--nav-bg);
     border: 1px solid var(--color-line);
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
   }
-  .neon-border {
-    position: relative;
-  }
+  .raised { box-shadow: var(--raised-shadow); }
+
+  /* Accent border — reserved for hero elements; fades out on calmer themes */
+  .neon-border { position: relative; }
   .neon-border::before {
     content: "";
     position: absolute;
     inset: 0;
     padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgb(167 139 250 / 0.7), rgb(59 130 246 / 0.35) 40%, transparent 70%, rgb(34 211 238 / 0.4));
+    background: linear-gradient(135deg, var(--color-violet-2), transparent 55%, var(--color-cyan));
+    opacity: calc(0.75 * var(--glow-opacity));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
   }
+  .glow { box-shadow: 0 10px 34px -12px color-mix(in oklab, var(--color-violet) calc(80% * var(--glow-opacity)), transparent); }
+
   .text-gradient {
-    background: linear-gradient(100deg, #c4b5fd 0%, #8b5cf6 35%, #3b82f6 70%, #22d3ee 100%);
+    background: linear-gradient(100deg, var(--color-violet-2) 0%, var(--color-violet) 40%, var(--color-electric) 80%, var(--color-cyan) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .bg-brand {
-    background-image: linear-gradient(120deg, #7c3aed 0%, #6366f1 45%, #3b82f6 100%);
+    background-image: linear-gradient(120deg, var(--brand-from) 0%, var(--brand-to) 100%);
   }
   .skeleton {
     background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
   }
+  /* Glossy sweep for celebratory elements */
+  .shine { position: relative; overflow: hidden; }
+  .shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+    animation: var(--animate-shine);
+    pointer-events: none;
+  }
+
   /* Level-unlocked avatar frames */
   .avatar-frame { isolation: isolate; }
   .avatar-frame::before {
@@ -284,11 +374,12 @@
   .frame-legend::before { background: conic-gradient(#fbbf24, #f472b6, #8b5cf6, #22d3ee, #fbbf24); animation: spin 4s linear infinite; box-shadow: 0 0 22px 0 #fbbf2488; }
   .frame-aurora::before { background: conic-gradient(#22c55e, #22d3ee, #6366f1, #d946ef, #22c55e); animation: spin 8s linear infinite; box-shadow: 0 0 18px -2px #22d3ee; }
 
-  /* Tactile feedback on tappable cards */
+  /* Tactile feedback on tappable surfaces */
   .tap {
-    transition: transform 0.18s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease;
+    transition: transform 0.18s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease, opacity 0.2s ease;
   }
-  .tap:active { transform: scale(0.98); }
+  .tap:active { transform: scale(0.975); }
+
   .confetti-piece {
     position: absolute;
     left: 50%;
@@ -299,6 +390,11 @@
     animation: confetti 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
     pointer-events: none;
   }
+
+  /* Mascot parts */
+  .mascot-eye { transform-origin: center; transform-box: fill-box; animation: blink 4.5s infinite; }
+  .mascot-antenna { animation: antenna 1.8s ease-in-out infinite; }
+
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }

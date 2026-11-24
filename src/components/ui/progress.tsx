@@ -24,32 +24,39 @@ export function ProgressBar({ value, className, tone = "brand", label }: { value
   );
 }
 
-export function ProgressRing({ value, size = 120, stroke = 10, children, label }: { value: number; size?: number; stroke?: number; children?: React.ReactNode; label?: string }) {
+export function ProgressRing({
+  value,
+  size = 120,
+  stroke = 10,
+  children,
+  label,
+  color = "var(--color-violet)",
+}: {
+  value: number;
+  size?: number;
+  stroke?: number;
+  children?: React.ReactNode;
+  label?: string;
+  color?: string;
+}) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, value));
   return (
-    <div className="relative grid shrink-0 place-items-center rounded-full shadow-[0_0_40px_-12px_rgb(139_92_246/0.8)]" style={{ width: size, height: size }} role="img" aria-label={label ?? `${Math.round(pct * 100)}%`}>
+    <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }} role="img" aria-label={label ?? `${Math.round(pct * 100)}%`}>
       <svg width={size} height={size} className="-rotate-90">
-        <defs>
-          <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a78bfa" />
-            <stop offset="55%" stopColor="#6366f1" />
-            <stop offset="100%" stopColor="#22d3ee" />
-          </linearGradient>
-        </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-tint)" strokeOpacity={0.08} strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-tint)" strokeOpacity={0.09} strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="url(#ring-grad)"
+          stroke={color}
           strokeWidth={stroke}
           strokeLinecap="round"
           fill="none"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - pct)}
-          style={{ transition: "stroke-dashoffset 900ms cubic-bezier(.2,.7,.2,1)" }}
+          style={{ transition: "stroke-dashoffset 900ms cubic-bezier(.2,.7,.2,1)", animation: "ring-fill 1.1s cubic-bezier(.2,.7,.2,1) both", ["--ring-c" as string]: c }}
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">{children}</div>

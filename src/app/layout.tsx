@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import { I18nProvider } from "@/lib/i18n/client";
+import { parseTheme, THEME_COLOR, THEME_COOKIE } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap" });
@@ -21,17 +22,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = {
-  themeColor: "#09090F",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  return { themeColor: THEME_COLOR[theme], width: "device-width", initialScale: 1, viewportFit: "cover" };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const t = await getT();
-  const saved = (await cookies()).get("proofit_theme")?.value;
-  const theme = saved === "light" || saved === "system" ? saved : "dark";
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
     <html lang={t.locale} data-theme={theme} suppressHydrationWarning className={`${inter.variable} ${grotesk.variable}`}>
       <body>

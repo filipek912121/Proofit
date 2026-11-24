@@ -27,7 +27,7 @@ export const PROFILE_BANNERS: (Cosmetic & { style: string })[] = [
   { id: "forest", name: "Forest", minLevel: 6, style: "linear-gradient(120deg, #16a34a 0%, #84cc16 40%, transparent 80%)" },
   { id: "galaxy", name: "Galaxy", minLevel: 12, style: "radial-gradient(circle at 20% 30%, #a855f7 0%, transparent 40%), radial-gradient(circle at 70% 10%, #3b82f6 0%, transparent 40%), linear-gradient(120deg, #1e1b4b, transparent 85%)" },
   { id: "champion", name: "Champion", minLevel: 20, style: "linear-gradient(120deg, #fbbf24 0%, #f59e0b 30%, #7c3aed 70%, transparent 95%)" },
-  { id: "midnight", name: "Midnight", minLevel: 1, premium: true, style: "linear-gradient(120deg, #312e81 0%, #6d28d9 40%, #db2777 75%, transparent 100%)" },
+  { id: "midnight", name: "Night sky", minLevel: 1, premium: true, style: "linear-gradient(120deg, #312e81 0%, #6d28d9 40%, #db2777 75%, transparent 100%)" },
 ];
 
 export function frameClass(id: string | null | undefined): string {

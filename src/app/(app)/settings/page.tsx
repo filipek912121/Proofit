@@ -2,7 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { SettingsForm } from "@/components/settings-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ThemePicker } from "@/components/theme-switcher";
 import { Card, PageHeader } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { getEntitlements } from "@/lib/services/entitlements";
@@ -26,9 +26,9 @@ export default async function SettingsPage() {
           <p className="text-sm font-medium">{t("Language")}</p>
           <LanguageSwitcher />
         </div>
-        <div className="flex items-center justify-between gap-3 p-5">
-          <p className="text-sm font-medium">{t("Theme")}</p>
-          <ThemeSwitcher />
+        <div className="p-5">
+          <p className="mb-3 text-sm font-medium">{t("Theme")}</p>
+          <ThemePicker />
         </div>
       </Card>
       <Card className="p-6">

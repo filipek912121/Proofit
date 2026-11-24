@@ -16,10 +16,12 @@ export function NewDuelForm({
   opponents,
   challenges,
   defaultChallengeId,
+  defaultOpponentId,
 }: {
   opponents: { id: string; label: string; group: "Friends" | "Suggested" }[];
   challenges: { id: string; title: string; durationDays: number }[];
   defaultChallengeId?: string;
+  defaultOpponentId?: string;
 }) {
   const t = useT();
   const [state, action] = useActionState(createDuelAction, null);
@@ -43,7 +45,7 @@ export function NewDuelForm({
   return (
     <form ref={formRef} action={action} className="space-y-4">
       <Field label={t("Opponent")} htmlFor="opponentId" error={fe?.opponentId}>
-        <select id="opponentId" name="opponentId" required className={selectClass} defaultValue="">
+        <select id="opponentId" name="opponentId" required className={selectClass} defaultValue={defaultOpponentId ?? ""}>
           <option value="" disabled>
             {t("Choose who to challenge")}
           </option>
