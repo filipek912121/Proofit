@@ -277,6 +277,26 @@ export const memoryStore: Store = {
     return clone(s);
   },
 
+  async getProxiProfile(userId) {
+    return clone(db().proxiProfiles.find((p) => p.userId === userId) ?? null);
+  },
+  async upsertProxiProfile(p) {
+    const list = db().proxiProfiles;
+    const i = list.findIndex((x) => x.userId === p.userId);
+    if (i >= 0) list[i] = { ...p };
+    else list.push({ ...p });
+    return clone(p);
+  },
+  async listProxiUnlocks(userId) {
+    return clone(db().proxiUnlocks.filter((u) => u.userId === userId));
+  },
+  async insertProxiUnlock(u) {
+    if (db().proxiUnlocks.some((x) => x.userId === u.userId && x.itemId === u.itemId)) return;
+    db().proxiUnlocks.push({ ...u });
+  },
+  async markProxiUnlocksSeen(userId) {
+    for (const u of db().proxiUnlocks) if (u.userId === userId) u.seen = true;
+  },
   async listFollows(q) {
     return clone(
       db().follows.filter(

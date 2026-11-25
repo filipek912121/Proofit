@@ -8,15 +8,19 @@ import { reviewQueue } from "@/lib/services/challenges";
 import { getEntitlements } from "@/lib/services/entitlements";
 import { pendingInvites } from "@/lib/services/social";
 import { getStore } from "@/lib/data";
+import { getProxiLook } from "@/lib/services/proxi";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireUser();
-  const [ent, reviews, invites, duels] = await Promise.all([
+  const [ent, reviews, invites, duels, proxi] = await Promise.all([
     getEntitlements(profile.id),
     reviewQueue(profile.id),
     pendingInvites(profile.id),
     getStore().listDuels(profile.id),
+    getProxiLook(profile.id),
   ]);
+  const inviteCount = invites.length + duels.filter((d) => d.status === "pending" && d.opponentId === profile.id).length;
+  const proxiNew = proxi.unseen + (proxi.evolved ? 1 : 0);
   const lv = levelFromXp(profile.xp);
   const user: ShellUser = {
     displayName: profile.displayName,
@@ -29,7 +33,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     xp: profile.xp,
     isPremium: ent.isPremium,
     reviewCount: reviews.length,
-    inviteCount: invites.length + duels.filter((d) => d.status === "pending" && d.opponentId === profile.id).length,
+    inviteCount,
+    notifCount: inviteCount + proxiNew,
+    proxiStage: proxi.stage,
+    proxiLook: proxi.look,
+    proxiNew,
   };
   const demo = isDemoMode();
   return (
@@ -42,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
-      <BottomNav />
+      <BottomNav user={user} />
     </div>
   );
 }

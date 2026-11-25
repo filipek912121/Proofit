@@ -1,8 +1,8 @@
 import { getT } from "@/lib/i18n/server";
-import { ArrowRight, Camera, ChevronRight, CircleCheck, Compass, Flame, Hourglass, Swords, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Camera, ChevronRight, CircleCheck, Compass, Flame, Hourglass, Plus, Swords, Trophy, Users, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MascotSays } from "@/components/mascot/mascot";
+import { ProxiBuddy } from "@/components/proxi/proxi-buddy";
 import { InvitesPanel } from "@/components/social/invites-panel";
 import { ReferralCard } from "@/components/social/referral-card";
 import { ActionButton } from "@/components/ui/action-button";
@@ -20,7 +20,9 @@ import { appTimeZone, dayKey, diffDays } from "@/lib/engine/dates";
 import { levelFromXp, levelTitle } from "@/lib/engine/levels";
 import { liveStreak } from "@/lib/engine/xp";
 import { intlLocale } from "@/lib/i18n/core";
-import { mascotForEvent, type MascotEvent } from "@/lib/mascot";
+import { stageInfo } from "@/lib/proxi/config";
+import { pickLine } from "@/lib/proxi/messages";
+import { getProxi } from "@/lib/services/proxi";
 import { activeChallenges, dailyChallenge } from "@/lib/services/challenges";
 import { listDuels } from "@/lib/services/duels";
 import { xpEarnedOn } from "@/lib/services/progress";
@@ -48,7 +50,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const t = await getT();
   const me = await requireUser();
   const today = dayKey();
-  const [active, daily, duels, invites, friendsBoard, activity, earnedToday] = await Promise.all([
+  const [active, daily, duels, invites, friendsBoard, activity, earnedToday, proxi] = await Promise.all([
     activeChallenges(me.id),
     dailyChallenge(me.id),
     listDuels(me.id),
@@ -56,6 +58,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     leaderboard(me.id, "friends", "week"),
     friendActivity(me.id),
     xpEarnedOn(me.id, today),
+    getProxi(me.id),
   ]);
   const { welcome } = await searchParams;
   const locale = intlLocale(t.locale);
@@ -68,18 +71,19 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const duelInvites = duels.filter((d) => d.duel.status === "pending" && !d.iAmChallenger);
   const firstName = me.displayName.split(" ")[0];
 
-  // The mascot only speaks when it adds something: a streak at risk, a comeback, or a finished day.
-  const inactiveDays = me.lastActiveDay ? diffDays(me.lastActiveDay, today) : null;
-  const event: MascotEvent | null = !active.length
-    ? inactiveDays && inactiveDays > 2
-      ? { kind: "inactive", days: inactiveDays }
-      : { kind: "no-challenges" }
-    : pending.length === 0
-      ? { kind: "all-done", streak }
-      : streak >= 2 && !doneToday
-        ? { kind: "pending-today", left: pending.length, streak }
-        : null;
-  const mascot = event ? mascotForEvent(event) : null;
+  // PROXI picks a line for the moment. Breaks are always met with a warm welcome — never guilt.
+  const proxiLine = welcome
+    ? "Welcome to PROOFIT, {name}!"
+    : proxi.mood === "excited"
+      ? pickLine("achievement")
+      : proxi.mood === "sleepy" || proxi.mood === "motivated"
+        ? pickLine("welcomeBack")
+        : active.length && pending.length === 0
+          ? pickLine("allDone")
+          : proxi.reminders && pending.length > 0 && doneToday === 0
+            ? pickLine("reminder")
+            : pickLine("greeting");
+  const proxiMood = welcome ? "excited" : active.length && pending.length === 0 ? "proud" : proxi.mood;
 
   // Friends board: top 3 + me (if I'm not in the top 3).
   const meRow = friendsBoard.find((r) => r.isMe);
@@ -88,15 +92,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   return (
     <div className="space-y-6">
-      {welcome && (
-        <MascotSays
-          mood="celebrate"
-          title={t("Welcome to PROOFIT, {name}!", { name: firstName })}
-          text={t("Join your first challenge below — your first check-in unlocks an achievement.")}
-          className="animate-pop"
-        />
-      )}
-
       {/* Greeting */}
       <header className="flex items-center gap-3 animate-rise">
         <Link href="/profile" className="tap shrink-0 rounded-full" aria-label={t("Profile")}>
@@ -159,7 +154,27 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         ) : null}
       </Card>
 
-      {mascot && <MascotSays mood={mascot.mood} title={t(mascot.title, mascot.params)} text={mascot.text ? t(mascot.text, mascot.params) : undefined} className="animate-rise [animation-delay:120ms]" />}
+      {/* PROXI companion */}
+      <section className="surface relative overflow-hidden rounded-2xl p-4 animate-rise [animation-delay:120ms]" aria-label="PROXI">
+        <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: stageInfo(proxi.stage).color, opacity: 0.18 }} aria-hidden />
+        <ProxiBuddy
+          stage={proxi.stage}
+          look={proxi.look}
+          mood={proxiMood}
+          line={proxiLine}
+          params={{ name: firstName }}
+          size={92}
+          className="relative"
+          extra={
+            <Link href="/proxi" className="inline-flex items-center gap-2 text-xs font-semibold text-violet-2">
+              <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-black" style={{ background: stageInfo(proxi.stage).color }}>
+                {stageInfo(proxi.stage).name}
+              </span>
+              {t("Your PROXI")} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          }
+        />
+      </section>
 
       {/* Today's challenges */}
       {active.length > 0 && (
@@ -244,13 +259,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         {/* Shortcuts */}
         <section aria-label={t("Quick actions")}>
           <SectionTitle title={t("Compete")} />
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {[
+              { href: "/create", label: t("Create"), I: Plus, badge: null, tone: "text-violet-2 bg-violet/10" },
               { href: "/duels", label: t("Duels"), I: Swords, badge: liveDuels.length ? t("{n} live", { n: liveDuels.length }) : null, tone: "text-red-300 bg-extreme/10" },
               { href: "/squads", label: t("Squads"), I: Users, badge: null, tone: "text-blue-300 bg-electric/10" },
               { href: "/explore", label: t("Explore"), I: Compass, badge: null, tone: "text-green-300 bg-easy/10" },
             ].map(({ href, label, I, badge, tone }) => (
-              <Link key={href} href={href} className="tap surface relative flex flex-col items-center gap-2 rounded-2xl py-4 text-[13px] font-semibold">
+              <Link key={href} href={href} className="tap surface relative flex min-w-0 flex-col items-center gap-2 rounded-2xl px-1 py-3.5 text-[12px] font-semibold">
                 <span className={cn("grid h-10 w-10 place-items-center rounded-xl", tone)}>
                   <I className="h-5 w-5" aria-hidden />
                 </span>

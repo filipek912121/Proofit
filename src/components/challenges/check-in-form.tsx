@@ -9,6 +9,11 @@ import { LIMITS } from "@/lib/config/game";
 import type { ProofKind } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 import { Confetti } from "@/components/ui/confetti";
+import { ProxiBuddy } from "@/components/proxi/proxi-buddy";
+import { ProxiCelebration } from "@/components/proxi/proxi-celebration";
+import { XpGainBar } from "@/components/proxi/xp-gain-bar";
+import type { ProxiLook, ProxiStage } from "@/lib/proxi/config";
+import { pickLine } from "@/lib/proxi/messages";
 import { CountUp } from "@/components/ui/count-up";
 import { Field, FormAlert, Input, Textarea } from "@/components/ui/field";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -18,12 +23,15 @@ export function CheckInForm({
   tasks,
   requiresProof,
   today,
+  proxi,
 }: {
   challengeId: string;
   tasks: string[];
   requiresProof: boolean;
   /** Today's existing check-in, if any (from the server). */
   today: { status: "approved" | "pending"; xp: number } | null;
+  /** The user's PROXI, which reacts to the result. */
+  proxi: { stage: ProxiStage; look: ProxiLook };
 }) {
   const t = useT();
   // Kept mounted across the post-action refresh so the result celebration stays visible.
@@ -36,7 +44,7 @@ export function CheckInForm({
 
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
 
-  if (state?.ok && state.data) return <CheckInResultView r={state.data} />;
+  if (state?.ok && state.data) return <CheckInResultView r={state.data} proxi={proxi} />;
   if (today) return <TodayStatus status={today.status} xp={today.xp} />;
 
   const allDone = tasks.every((task) => done.includes(task));
@@ -205,51 +213,71 @@ function TodayStatus({ status, xp }: { status: "approved" | "pending"; xp: numbe
   );
 }
 
-function CheckInResultView({ r }: { r: import("@/lib/services/challenges").CheckInResult }) {
+function CheckInResultView({ r, proxi }: { r: import("@/lib/services/challenges").CheckInResult; proxi: { stage: ProxiStage; look: ProxiLook } }) {
   const t = useT();
+  const total = r.xp + r.streakBonus + r.completionBonus;
+  const [line] = useState(() => (r.status === "pending" ? "Proof submitted" : r.challengeCompleted ? pickLine("challengeDone") : pickLine("xp")));
+  const evolvedTo = r.stageAfter > r.stageBefore ? (r.stageAfter as ProxiStage) : null;
+  const celebrate = r.status === "approved" && (Boolean(r.levelUp) || Boolean(evolvedTo) || r.achievements.length > 0 || r.newProxiItems.length > 0);
+  const stage = (r.stageAfter as ProxiStage) || proxi.stage;
   if (r.status === "pending")
     return (
-      <div className="rounded-2xl bg-electric/10 p-6 text-center ring-1 ring-electric/30 animate-pop" role="status">
-        <Hourglass className="mx-auto mb-3 h-10 w-10 text-blue-300" aria-hidden />
-        <p className="font-display text-xl font-bold">{t("Proof submitted")}</p>
-        <p className="mt-1 text-sm text-muted">{t("Pending verification. XP is awarded once a reviewer approves it.")}</p>
-        <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-300">
-          <Flame className="h-4 w-4" aria-hidden /> {t("Streak")}: {t.p(r.streak, "{n} day", "{n} days")}
+      <div className="rounded-2xl bg-electric/10 p-5 ring-1 ring-electric/30 animate-pop" role="status">
+        <ProxiBuddy stage={stage} look={proxi.look} mood="motivated" line="Proof sent! I'll keep an eye on it." size={84} />
+        <p className="mt-3 text-sm font-semibold">{t("Proof submitted")}</p>
+        <p className="text-sm text-muted">{t("Pending verification. XP is awarded once a reviewer approves it.")}</p>
+        <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-300">
+          <Flame className="h-4 w-4 animate-flame" aria-hidden /> {t("Streak")}: {t.p(r.streak, "{n} day", "{n} days")}
         </p>
       </div>
     );
-  const total = r.xp + r.streakBonus + r.completionBonus;
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet/25 via-indigo-500/10 to-electric/15 p-6 text-center ring-1 ring-violet/40 animate-pop" role="status">
-      <PartyPopper className="mx-auto mb-2 h-10 w-10 animate-float text-violet-2" aria-hidden />
+    <div className="relative overflow-hidden rounded-2xl bg-violet/[0.08] p-5 ring-1 ring-violet/30 animate-pop" role="status">
       <Confetti />
-      <p className="font-display text-4xl font-bold text-gradient">
-        <CountUp value={total} prefix="+" suffix=" XP" />
-      </p>
-      <p className="mt-1 text-sm text-muted">{t("Check-in complete. See you tomorrow.")}</p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs">
-        <span className="inline-flex items-center gap-1 rounded-full bg-tint/10 px-3 py-1.5">
-          <Zap className="h-3.5 w-3.5" aria-hidden /> {t("{n} base", { n: r.xp })}
-        </span>
-        {r.streakBonus > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-hard/15 px-3 py-1.5 text-orange-300">
-            <Flame className="h-3.5 w-3.5" aria-hidden /> {t("+{n} streak ({d}d)", { n: r.streakBonus, d: r.streak })}
+      <div className="relative">
+        <ProxiBuddy
+          stage={stage}
+          look={proxi.look}
+          mood={r.challengeCompleted ? "excited" : "happy"}
+          line={line}
+          params={{ n: total }}
+          size={92}
+          extra={
+            <p className="font-display text-3xl font-bold text-gradient">
+              <CountUp value={total} prefix="+" suffix=" XP" />
+            </p>
+          }
+        />
+        <p className="mt-3 text-sm text-muted">{t("Check-in complete. See you tomorrow.")}</p>
+        <div className="mt-3">
+          <XpGainBar from={r.xpBefore} to={r.xpAfter} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="inline-flex items-center gap-1 rounded-full bg-tint/10 px-3 py-1.5">
+            <Zap className="h-3.5 w-3.5" aria-hidden /> {t("{n} base", { n: r.xp })}
           </span>
-        )}
-        {r.completionBonus > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-easy/15 px-3 py-1.5 text-green-300">
-            <Trophy className="h-3.5 w-3.5" aria-hidden /> {t("+{n} finish bonus", { n: r.completionBonus })}
-          </span>
-        )}
+          {r.streakBonus > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-hard/15 px-3 py-1.5 text-orange-300">
+              <Flame className="h-3.5 w-3.5 animate-flame" aria-hidden /> {t("+{n} streak ({d}d)", { n: r.streakBonus, d: r.streak })}
+            </span>
+          )}
+          {r.completionBonus > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-easy/15 px-3 py-1.5 text-green-300">
+              <Trophy className="h-3.5 w-3.5" aria-hidden /> {t("+{n} finish bonus", { n: r.completionBonus })}
+            </span>
+          )}
+          {r.achievements.map((a) => (
+            <span key={a} className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-3 py-1.5 text-gold">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {t(a)}
+            </span>
+          ))}
+        </div>
+        {r.challengeCompleted && <p className="mt-3 text-sm font-semibold text-green-300">{t("Challenge completed! 🎉")}</p>}
+        {r.capped && <p className="mt-3 text-xs text-subtle">{t("Daily XP cap reached — keep it up tomorrow.")}</p>}
       </div>
-      {r.challengeCompleted && <p className="mt-4 font-semibold text-green-300">{t("Challenge completed! 🎉")}</p>}
-      {r.levelUp && <p className="mt-2 font-display text-lg font-bold text-gold">{t("Level up → Level {n}", { n: r.levelUp })}</p>}
-      {r.achievements.length > 0 && (
-        <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-violet-2">
-          <Sparkles className="h-4 w-4" aria-hidden /> Unlocked: {r.achievements.join(", ")}
-        </p>
+      {celebrate && (
+        <ProxiCelebration data={{ levelUp: r.levelUp, evolvedTo, achievements: r.achievements, newItems: r.newProxiItems }} stage={stage} look={proxi.look} />
       )}
-      {r.capped && <p className="mt-3 text-xs text-subtle">{t("Daily XP cap reached — keep it up tomorrow.")}</p>}
     </div>
   );
 }

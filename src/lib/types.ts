@@ -182,3 +182,20 @@ export interface Follow {
 export type ActionResult<T = undefined> =
   | { ok: true; message?: string; data?: T }
   | { ok: false; error: string; fieldErrors?: Record<string, string> };
+
+/** Per-user PROXI state (look, last evolution stage the user has seen, reminder preference). */
+export interface ProxiProfile {
+  userId: string;
+  look: Record<string, string>;
+  seenStage: number;
+  reminders: boolean;
+  updatedAt: string;
+}
+
+/** A wardrobe item the user has unlocked (stored once; never revoked). */
+export interface ProxiUnlock {
+  userId: string;
+  itemId: string;
+  unlockedAt: string;
+  seen: boolean;
+}

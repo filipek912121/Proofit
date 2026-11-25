@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { SettingsForm } from "@/components/settings-form";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemePicker } from "@/components/theme-switcher";
+import { ProxiReminderToggle } from "@/components/proxi/reminder-toggle";
+import { getStore } from "@/lib/data";
 import { Card, PageHeader } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { getEntitlements } from "@/lib/services/entitlements";
@@ -29,6 +31,13 @@ export default async function SettingsPage() {
         <div className="p-5">
           <p className="mb-3 text-sm font-medium">{t("Theme")}</p>
           <ThemePicker />
+        </div>
+        <div className="flex items-center gap-3 p-5">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">{t("PROXI reminders")}</p>
+            <p className="text-xs text-subtle">{t("PROXI reminds you about open challenges — at most once a day, never pushy.")}</p>
+          </div>
+          <ProxiReminderToggle on={(await getStore().getProxiProfile(me.id))?.reminders ?? true} />
         </div>
       </Card>
       <Card className="p-6">

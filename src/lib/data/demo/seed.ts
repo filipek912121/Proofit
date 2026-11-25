@@ -12,6 +12,8 @@ import type {
   Invite,
   Participation,
   Profile,
+  ProxiProfile,
+  ProxiUnlock,
   ProofSubmission,
   Squad,
   SquadMember,
@@ -36,6 +38,8 @@ export interface DemoDb {
   follows: Follow[];
   invites: Invite[];
   files: Record<string, string>;
+  proxiProfiles: ProxiProfile[];
+  proxiUnlocks: ProxiUnlock[];
 }
 
 export const DEMO_USER_ID = "demo-alex";
@@ -412,5 +416,7 @@ export function createSeed(): DemoDb {
     follows,
     invites,
     files: {},
+    proxiProfiles: [],
+    proxiUnlocks: [],
   };
 }

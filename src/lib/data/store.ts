@@ -7,6 +7,8 @@ import type {
   Invite,
   Participation,
   Profile,
+  ProxiProfile,
+  ProxiUnlock,
   ProofSubmission,
   Squad,
   SquadMember,
@@ -113,6 +115,14 @@ export interface Store {
   upsertSubscription(s: Subscription): Promise<Subscription>;
 
   // social graph + invites
+  // PROXI
+  getProxiProfile(userId: string): Promise<ProxiProfile | null>;
+  upsertProxiProfile(p: ProxiProfile): Promise<ProxiProfile>;
+  listProxiUnlocks(userId: string): Promise<ProxiUnlock[]>;
+  /** Idempotent: inserting an unlock that already exists is a no-op. */
+  insertProxiUnlock(u: ProxiUnlock): Promise<void>;
+  markProxiUnlocksSeen(userId: string): Promise<void>;
+
   listFollows(q: { followerId?: string; followingId?: string }): Promise<Follow[]>;
   insertFollow(f: Follow): Promise<void>;
   deleteFollow(f: Follow): Promise<void>;

@@ -11,6 +11,9 @@ import { cn } from "@/components/ui/cn";
 import { requireUser } from "@/lib/auth";
 import { XP_RULES } from "@/lib/config/game";
 import { getDuelView } from "@/lib/services/duels";
+import { getProxiLook } from "@/lib/services/proxi";
+import { ProxiBuddy } from "@/components/proxi/proxi-buddy";
+import { pickLine } from "@/lib/proxi/messages";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -23,6 +26,7 @@ export default async function DuelPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const v = await getDuelView(me.id, id.slice(0, 64));
   if (!v) notFound();
+  const proxi = await getProxiLook(me.id);
   const d = v.duel;
   const ended = d.status === "completed";
   const winner = d.winnerId === me.id ? v.me : d.winnerId ? v.opponent : null;
@@ -50,7 +54,18 @@ export default async function DuelPage({ params }: { params: Promise<{ id: strin
           <span className="order-2 font-display text-xl font-bold text-subtle">{t("VS")}</span>
         </div>
         {ended && (
-          <p className="relative mt-8 font-display text-xl font-bold">
+          <div className="relative mt-6 text-left">
+            <ProxiBuddy
+              stage={proxi.stage}
+              look={proxi.look}
+              mood={d.isDraw ? "happy" : winner?.id === me.id ? "excited" : "sad"}
+              line={pickLine(d.isDraw ? "greeting" : winner?.id === me.id ? "victory" : "defeat")}
+              size={84}
+            />
+          </div>
+        )}
+        {ended && (
+          <p className="relative mt-6 font-display text-xl font-bold">
             {d.isDraw ? t("It's a draw 🤝") : winner?.id === me.id ? <span className="text-gold">{t("You won! +{n} XP", { n: XP_RULES.duelWinBonus })}</span> : t("{name} won this one", { name: v.opponent.displayName })}
           </p>
         )}

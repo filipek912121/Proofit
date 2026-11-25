@@ -1,6 +1,7 @@
 import "server-only";
 import { ACHIEVEMENTS, qualifyingAchievements } from "@/lib/config/achievements";
 import { REFERRAL_RULES, XP_RULES } from "@/lib/config/game";
+import { syncProxiUnlocks } from "./proxi";
 import { DuplicateError, getStore } from "@/lib/data";
 import { addDays, dayKey } from "@/lib/engine/dates";
 import { levelFromXp } from "@/lib/engine/levels";
@@ -163,5 +164,7 @@ export async function evaluateAchievements(userId: string): Promise<Achievement[
     unlocked.push(a);
     await awardXp({ userId, amount: a.xpBonus, reason: "achievement", refId: `ach:${id}`, day: dayKey() });
   }
+  // Progress may have unlocked new PROXI looks — persist them on the account.
+  await syncProxiUnlocks(userId);
   return unlocked;
 }

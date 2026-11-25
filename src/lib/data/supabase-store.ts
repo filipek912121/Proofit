@@ -211,6 +211,19 @@ export const supabaseStore: Store = {
     return (await one(db().from("subscriptions").upsert(toRow(s), { onConflict: "user_id" }).select().single()))!;
   },
 
+  getProxiProfile: (userId) => one(db().from("proxi_profiles").select("*").eq("user_id", userId).maybeSingle()),
+  async upsertProxiProfile(p) {
+    return (await one(db().from("proxi_profiles").upsert(toRow(p), { onConflict: "user_id" }).select().single()))!;
+  },
+  listProxiUnlocks: (userId) => many(db().from("proxi_unlocks").select("*").eq("user_id", userId)),
+  async insertProxiUnlock(u) {
+    const { error } = await db().from("proxi_unlocks").upsert(toRow(u), { onConflict: "user_id,item_id", ignoreDuplicates: true });
+    check(error);
+  },
+  async markProxiUnlocksSeen(userId) {
+    const { error } = await db().from("proxi_unlocks").update({ seen: true }).eq("user_id", userId).eq("seen", false);
+    check(error);
+  },
   listFollows: (q) => {
     let query = db().from("follows").select("*");
     if (q.followerId) query = query.eq("follower_id", q.followerId);

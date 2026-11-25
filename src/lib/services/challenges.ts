@@ -3,6 +3,7 @@ import { LIMITS } from "@/lib/config/game";
 import { DuplicateError, getStore } from "@/lib/data";
 import { addDays, dayKey } from "@/lib/engine/dates";
 import { levelFromXp } from "@/lib/engine/levels";
+import { stageForLevel } from "@/lib/proxi/config";
 import { screenChallengeText } from "@/lib/engine/safety";
 import { clampXpReward, nextStreak } from "@/lib/engine/xp";
 import type { Category, Challenge, Completion, Difficulty, Participation, ProofKind, ProofSubmission } from "@/lib/types";
@@ -281,6 +282,12 @@ export interface CheckInResult {
   streak: number;
   levelUp: number | null;
   achievements: string[];
+  /** For PROXI's reaction: XP before/after, evolution and newly unlocked looks. */
+  xpBefore: number;
+  xpAfter: number;
+  stageBefore: number;
+  stageAfter: number;
+  newProxiItems: string[];
 }
 
 export async function checkIn(userId: string, input: CheckInInput): Promise<CheckInResult> {
@@ -315,6 +322,7 @@ export async function checkIn(userId: string, input: CheckInInput): Promise<Chec
   }
 
   const before = (await store.getProfile(userId))!;
+  const unlocksBefore = new Set((await store.listProxiUnlocks(userId)).map((u) => u.itemId));
   let completion: Completion;
   try {
     completion = await store.insertCompletion({
@@ -366,6 +374,7 @@ export async function checkIn(userId: string, input: CheckInInput): Promise<Chec
 
   const unlocked = await evaluateAchievements(userId);
   const after = (await store.getProfile(userId))!;
+  const newProxiItems = (await store.listProxiUnlocks(userId)).map((u) => u.itemId).filter((id) => !unlocksBefore.has(id));
   const lvBefore = levelFromXp(before.xp).level;
   const lvAfter = levelFromXp(after.xp).level;
   return {
@@ -378,6 +387,11 @@ export async function checkIn(userId: string, input: CheckInInput): Promise<Chec
     streak: s.currentStreak,
     levelUp: lvAfter > lvBefore ? lvAfter : null,
     achievements: unlocked.map((a) => a.name),
+    xpBefore: before.xp,
+    xpAfter: after.xp,
+    stageBefore: stageForLevel(lvBefore),
+    stageAfter: stageForLevel(lvAfter),
+    newProxiItems,
   };
 }
 

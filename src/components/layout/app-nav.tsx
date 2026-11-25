@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   Award,
   Bell,
+  Bot,
   CirclePlus,
   Compass,
   Crown,
@@ -26,8 +27,10 @@ import { ProgressBar } from "@/components/ui/progress";
 import { BOTTOM_NAV, NAV } from "./nav-items";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { ProxiAvatar } from "@/components/proxi/proxi-avatar";
+import type { ProxiLook, ProxiStage } from "@/lib/proxi/config";
 
-const ICONS: Record<string, LucideIcon> = { House, Compass, CirclePlus, Swords, Users, Trophy, Award, ShieldCheck, User };
+const ICONS: Record<string, LucideIcon> = { House, Compass, CirclePlus, Swords, Users, Trophy, Award, ShieldCheck, User, Bot, Bell };
 
 export interface ShellUser {
   displayName: string;
@@ -41,6 +44,12 @@ export interface ShellUser {
   isPremium: boolean;
   reviewCount: number;
   inviteCount: number;
+  /** Unread notifications (invites, duel invites, PROXI news). */
+  notifCount: number;
+  proxiStage: ProxiStage;
+  proxiLook: ProxiLook;
+  /** PROXI evolved or has new looks waiting. */
+  proxiNew: number;
 }
 
 /** Icon that pulses while its link's page is loading — instant feedback on tap. */
@@ -70,18 +79,18 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
         {NAV.map((item) => {
           const I = ICONS[item.icon];
           const active = isActive(item.href);
-          const badge = item.href === "/review" ? user.reviewCount : item.href === "/dashboard" ? user.inviteCount : 0;
+          const badge = item.href === "/review" ? user.reviewCount : item.href === "/notifications" ? user.notifCount : item.href === "/proxi" ? user.proxiNew : 0;
           return (
             <Link
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                active ? "bg-gradient-to-r from-violet/20 to-electric/5 text-fg" : "text-muted hover:bg-tint/5 hover:text-fg",
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all",
+                active ? "bg-violet/12 text-fg" : "text-muted hover:bg-tint/5 hover:text-fg",
               )}
             >
-              {active && <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-violet-2 to-electric shadow-[0_0_12px_#8b5cf6]" />}
+              {active && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-violet" />}
               <NavIcon I={I} className={cn("h-[18px] w-[18px] transition-colors", active ? "text-violet-2" : "group-hover:text-fg")} />
               {t(item.label)}
               {badge > 0 && (
@@ -102,7 +111,7 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
         href="/premium"
         className={cn(
           "mb-4 flex items-center gap-3 rounded-2xl p-3 text-sm transition",
-          user.isPremium ? "bg-gold/10 ring-1 ring-gold/25" : "bg-gradient-to-br from-violet/25 to-electric/10 ring-1 ring-violet/30 hover:ring-violet/60",
+          user.isPremium ? "bg-gold/10 ring-1 ring-gold/25" : "bg-violet/10 ring-1 ring-violet/25 hover:ring-violet/50",
         )}
       >
         <Crown className={cn("h-5 w-5", user.isPremium ? "text-gold" : "text-violet-2")} aria-hidden />
@@ -137,62 +146,68 @@ export function Sidebar({ user, signOut, demo }: { user: ShellUser; signOut: () 
 export function MobileTopBar({ user }: { user: ShellUser }) {
   const t = useT();
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur-xl lg:hidden">
+    <header className="glass-strong sticky top-0 z-40 flex h-14 items-center justify-between border-x-0 border-t-0 px-4 lg:hidden">
       <Link href="/dashboard" aria-label={t("PROOFIT home")}>
         <Logo size={26} />
       </Link>
       <div className="flex items-center gap-1">
-        <Link href="/duels" className="rounded-xl p-2 text-muted hover:text-fg" aria-label={t("Duels")}>
-          <Swords className="h-5 w-5" />
+        <Link href="/create" className="tap rounded-xl p-2 text-muted hover:text-fg" aria-label={t("Create challenge")}>
+          <CirclePlus className="h-[22px] w-[22px]" />
         </Link>
-        <Link href="/squads" className="rounded-xl p-2 text-muted hover:text-fg" aria-label={t("Squads")}>
-          <Users className="h-5 w-5" />
-        </Link>
-        <Link href="/review" className="relative rounded-xl p-2 text-muted hover:text-fg" aria-label={`${t("Verify proofs")}${user.reviewCount ? `, ${t("{n} pending", { n: user.reviewCount })}` : ""}`}>
-          <ShieldCheck className="h-5 w-5" />
-          {user.reviewCount > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-violet-2 shadow-[0_0_8px_#a78bfa]" />}
-        </Link>
-        <Link href="/dashboard#invites" className="relative rounded-xl p-2 text-muted hover:text-fg" aria-label={`${t("Invites")}${user.inviteCount ? `, ${t("{n} pending", { n: user.inviteCount })}` : ""}`}>
-          <Bell className="h-5 w-5" />
-          {user.inviteCount > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-extreme shadow-[0_0_8px_#ef4444]" />}
+        <Link href="/notifications" className="tap relative rounded-xl p-2 text-muted hover:text-fg" aria-label={`${t("Notifications")}${user.notifCount ? `, ${t("{n} pending", { n: user.notifCount })}` : ""}`}>
+          <Bell className="h-[22px] w-[22px]" />
+          {user.notifCount > 0 && (
+            <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-extreme px-1 text-[10px] font-bold text-white animate-pop">{user.notifCount > 9 ? "9+" : user.notifCount}</span>
+          )}
         </Link>
       </div>
     </header>
   );
 }
 
-export function BottomNav() {
+export function BottomNav({ user }: { user: ShellUser }) {
   const t = useT();
   const isActive = useActive();
+  const activeIndex = BOTTOM_NAV.findIndex((h) => isActive(h));
   return (
-    <nav aria-label={t("Primary")} className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/95 backdrop-blur-xl lg:hidden">
-      <ul className="mx-auto grid max-w-md grid-cols-5 px-2 pt-1.5">
+    <nav aria-label={t("Primary")} className="glass-strong pb-safe fixed inset-x-0 bottom-0 z-40 border-x-0 border-b-0 lg:hidden">
+      <ul className="relative mx-auto grid max-w-md grid-cols-5 px-2 pt-1.5">
+        {/* Sliding active indicator (hidden when PROXI, the centre button, is active) */}
+        {activeIndex >= 0 && BOTTOM_NAV[activeIndex] !== "/proxi" && (
+          <span
+            className="pointer-events-none absolute top-1.5 h-7 rounded-full bg-violet/15 transition-transform duration-300 ease-out"
+            style={{ width: "calc((100% - 1rem) / 5 - 1.5rem)", left: "calc(0.5rem + 0.75rem)", transform: `translateX(calc(${activeIndex} * (100% + 1.5rem)))` }}
+            aria-hidden
+          />
+        )}
         {BOTTOM_NAV.map((href) => {
           const item = NAV.find((n) => n.href === href)!;
           const I = ICONS[item.icon];
           const active = isActive(href);
-          if (href === "/create")
+          if (href === "/proxi")
             return (
               <li key={href} className="flex justify-center">
                 <Link
                   href={href}
-                  aria-label={t("Create challenge")}
+                  aria-label={t("Your PROXI")}
                   aria-current={active ? "page" : undefined}
-                  className="-mt-5 grid h-14 w-14 place-items-center rounded-2xl bg-brand text-white shadow-[0_10px_30px_-6px_rgb(124_58_237/0.9)] ring-4 ring-ink transition active:scale-95"
+                  className={cn(
+                    "tap relative -mt-6 grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-ink-2 ring-4 ring-ink transition-shadow",
+                    active ? "shadow-[0_0_0_2px_var(--color-violet)]" : "shadow-[0_8px_24px_-8px_rgb(0_0_0/0.5)]",
+                  )}
                 >
-                  <NavIcon I={CirclePlus} className="h-6 w-6" />
+                  <span className="pointer-events-none mt-3" aria-hidden>
+                    <ProxiAvatar stage={user.proxiStage} look={user.proxiLook} mood={active ? "happy" : "neutral"} size={56} animate={active} />
+                  </span>
+                  {user.proxiNew > 0 && <span className="absolute right-2 top-2 h-3 w-3 rounded-full bg-extreme ring-2 ring-ink-2" aria-label={t("New")} />}
                 </Link>
               </li>
             );
           return (
             <li key={href}>
-              <Link
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cn("flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition", active ? "text-fg" : "text-subtle")}
-              >
-                <span className={cn("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", active ? "scale-105 bg-violet/20" : "scale-100")}>
-                  <NavIcon I={I} className={cn("h-5 w-5", active && "text-violet-2")} />
+              <Link href={href} aria-current={active ? "page" : undefined} className={cn("relative flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition-colors", active ? "text-fg" : "text-subtle")}>
+                <span className="grid h-7 w-12 place-items-center">
+                  <NavIcon I={I} className={cn("h-5 w-5 transition-transform duration-300", active && "scale-110 text-violet-2")} />
                 </span>
                 {t(item.label)}
               </Link>

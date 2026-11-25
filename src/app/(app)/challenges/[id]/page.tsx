@@ -18,6 +18,7 @@ import { requireUser } from "@/lib/auth";
 import { DIFFICULTY_META } from "@/lib/config/taxonomy";
 import { addDays, dayKey } from "@/lib/engine/dates";
 import { challengeDetail } from "@/lib/services/challenges";
+import { getProxiLook } from "@/lib/services/proxi";
 import { getStore } from "@/lib/data";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -34,6 +35,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
   const { created } = await searchParams;
   const d = await challengeDetail(id.slice(0, 64), me.id);
   if (!d) notFound();
+  const proxiLook = await getProxiLook(me.id);
   const c = d.challenge;
   const p = d.participation;
   const m = DIFFICULTY_META[c.difficulty];
@@ -134,6 +136,7 @@ export default async function ChallengePage({ params, searchParams }: { params: 
                     tasks={c.tasks}
                     requiresProof={c.requiresProof}
                     today={d.todayCompletion && d.todayCompletion.status !== "rejected" ? { status: d.todayCompletion.status, xp: d.todayCompletion.xpAwarded } : null}
+                    proxi={proxiLook}
                   />
                 ) : (
                   <p className="text-sm text-muted">{t("Check-ins are closed for this window.")}</p>
