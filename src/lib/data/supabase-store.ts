@@ -224,6 +224,16 @@ export const supabaseStore: Store = {
     const { error } = await db().from("proxi_unlocks").update({ seen: true }).eq("user_id", userId).eq("seen", false);
     check(error);
   },
+  async claimStripeEvent(id, type) {
+    const { error } = await db().from("stripe_events").insert({ id, type });
+    if (error?.code === "23505") return false; // unique violation → already processed
+    check(error);
+    return true;
+  },
+  async releaseStripeEvent(id) {
+    const { error } = await db().from("stripe_events").delete().eq("id", id);
+    check(error);
+  },
   listFollows: (q) => {
     let query = db().from("follows").select("*");
     if (q.followerId) query = query.eq("follower_id", q.followerId);

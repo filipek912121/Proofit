@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSupabaseSession } from "@/lib/supabase/proxy";
 
-const PROTECTED = ["/dashboard", "/explore", "/create", "/challenges", "/duels", "/squads", "/leaderboard", "/profile", "/achievements", "/review", "/stats", "/settings", "/u/"];
+const PROTECTED = ["/dashboard", "/explore", "/create", "/challenges", "/duels", "/squads", "/leaderboard", "/profile", "/achievements", "/review", "/stats", "/settings", "/u/", "/friends", "/proxi", "/notifications", "/premium", "/welcome"];
 const DEMO_COOKIE = "proofit_demo_uid";
 
 function isProtected(pathname: string) {

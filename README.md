@@ -2,7 +2,7 @@
 
 A social challenge platform: join daily / weekly / monthly challenges, check in every day, upload proof, duel friends, build squads and climb the leaderboard.
 
-**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS 4 · Supabase (Auth, Postgres, Storage, RLS) · Stripe (prepared) · Lucide icons · Zod
+**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS 4 · Supabase (Auth, Postgres, Storage, RLS) · Stripe (subscriptions + BLIK/P24 passes) · Lucide icons · Zod
 
 ---
 
@@ -41,18 +41,23 @@ Other scripts:
 
 To make someone an admin (can verify any proof): `update profiles set is_admin = true where username = '...';`
 
-## Connecting Stripe (Premium — 19.99 PLN / month)
+## Connecting Stripe (Premium — 19.99 PLN)
 
-Payments are **not faked**. Until Stripe is configured, the Premium page says so and checkout is disabled (demo mode only offers a clearly-labelled "preview Premium" toggle).
+Payments are **not faked**, and they need Supabase: in demo mode checkout is disabled (only a clearly-labelled "preview Premium" toggle exists). Step-by-step guide in Polish: [`docs/PLATNOSCI.md`](docs/PLATNOSCI.md).
 
-1. Stripe Dashboard → *Products* → create "PROOFIT Premium" with a **recurring price of 19.99 PLN / month**. Copy the price ID (`price_…`) → `STRIPE_PRICE_ID_PREMIUM`.
+Two products:
+- **Monthly subscription** 19.99 PLN — cards, Apple Pay, Google Pay; renews; cancel in the customer portal.
+- **30-day pass** 19.99 PLN one-time — BLIK, Przelewy24, cards; no renewal; passes stack. A running pass becomes a free trial if the user then subscribes.
+
+Quick setup: `STRIPE_SECRET_KEY=sk_test_… node scripts/stripe-setup.mjs https://<your-domain>` creates the product/price and the webhook and prints the env vars. Manually:
+1. *Settings → Payment methods* → enable **BLIK** and **Przelewy24**.
 2. *Developers → API keys* → secret key → `STRIPE_SECRET_KEY`.
-3. *Developers → Webhooks* → add endpoint `https://<your-domain>/api/stripe/webhook` with events
-   `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the signing secret → `STRIPE_WEBHOOK_SECRET`.
-   Local testing: `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
-4. (Optional) Enable the *Customer portal* in Stripe settings so "Manage billing" works.
+3. *Developers → Webhooks* → endpoint `https://<your-domain>/api/stripe/webhook` with events
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted` → signing secret → `STRIPE_WEBHOOK_SECRET`.
+4. (Optional) `STRIPE_PRICE_ID_PREMIUM` — a recurring 19.99 PLN price; without it the price is created inline.
+5. Enable the *Customer portal* so "Manage billing" works. Local testing: `stripe listen --forward-to localhost:3000/api/stripe/webhook` with `STRIPE_ALLOW_DEMO=1`.
 
-The webhook (signature-verified) is the **only** thing that upgrades a plan. Premium is always resolved on the server from the `subscriptions` table.
+The webhook (signature-verified, each event processed once via `stripe_events`) is the **only** thing that upgrades a plan. Premium is always resolved on the server from the `subscriptions` table.
 
 ## Environment variables
 
@@ -64,7 +69,7 @@ The webhook (signature-verified) is the **only** thing that upgrades a plan. Pre
 | `SUPABASE_SERVICE_ROLE_KEY` | for real mode | **Server-only.** Used by server actions for XP, check-ins, achievements, subscriptions |
 | `STRIPE_SECRET_KEY` | for payments | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | for payments | Webhook signing secret |
-| `STRIPE_PRICE_ID_PREMIUM` | for payments | 19.99 PLN monthly price ID |
+| `STRIPE_PRICE_ID_PREMIUM` | optional | 19.99 PLN monthly price ID (inline price if empty) |
 | `APP_TIMEZONE` | no | Defines "today" for check-ins/streaks (default `Europe/Warsaw`) |
 
 All three Supabase variables must be set to leave demo mode.

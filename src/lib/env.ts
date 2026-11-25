@@ -10,8 +10,16 @@ export function isDemoMode(): boolean {
   return !(env.supabaseUrl && env.supabaseAnonKey && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+/** Stripe keys present. The price id is optional — without it the 19.99 PLN price is created inline. */
 export function isStripeConfigured(): boolean {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID_PREMIUM && process.env.STRIPE_WEBHOOK_SECRET,
-  );
+  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
+}
+
+/**
+ * Real payments need a persistent database: in demo mode Premium would live in
+ * one server's memory and could be lost after paying. So checkout is only
+ * offered with Supabase configured (or explicitly for local testing).
+ */
+export function paymentsEnabled(): boolean {
+  return isStripeConfigured() && (!isDemoMode() || process.env.STRIPE_ALLOW_DEMO === "1");
 }

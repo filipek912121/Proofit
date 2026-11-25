@@ -123,6 +123,11 @@ export interface Store {
   insertProxiUnlock(u: ProxiUnlock): Promise<void>;
   markProxiUnlocksSeen(userId: string): Promise<void>;
 
+  /** Records a Stripe webhook event id. Returns false if it was already processed (idempotency). */
+  claimStripeEvent(id: string, type: string): Promise<boolean>;
+  /** Undo a claim when handling failed, so Stripe's retry is processed. */
+  releaseStripeEvent(id: string): Promise<void>;
+
   listFollows(q: { followerId?: string; followingId?: string }): Promise<Follow[]>;
   insertFollow(f: Follow): Promise<void>;
   deleteFollow(f: Follow): Promise<void>;

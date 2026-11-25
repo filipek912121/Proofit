@@ -40,6 +40,8 @@ export interface DemoDb {
   files: Record<string, string>;
   proxiProfiles: ProxiProfile[];
   proxiUnlocks: ProxiUnlock[];
+  /** Processed Stripe webhook event ids (idempotency). */
+  stripeEvents?: string[];
 }
 
 export const DEMO_USER_ID = "demo-alex";

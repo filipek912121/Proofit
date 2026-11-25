@@ -297,6 +297,15 @@ export const memoryStore: Store = {
   async markProxiUnlocksSeen(userId) {
     for (const u of db().proxiUnlocks) if (u.userId === userId) u.seen = true;
   },
+  async claimStripeEvent(id) {
+    const seen = (db().stripeEvents ??= []);
+    if (seen.includes(id)) return false;
+    seen.push(id);
+    return true;
+  },
+  async releaseStripeEvent(id) {
+    db().stripeEvents = (db().stripeEvents ?? []).filter((x) => x !== id);
+  },
   async listFollows(q) {
     return clone(
       db().follows.filter(
