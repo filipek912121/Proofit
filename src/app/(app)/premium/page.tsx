@@ -85,7 +85,6 @@ export default async function PremiumPage({ searchParams }: { searchParams: Prom
         </Card>
 
         <Card glow className="relative overflow-hidden p-6 lg:self-start">
-          <span className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gold/20 blur-3xl" aria-hidden />
           <p className="relative flex items-center gap-2 font-display text-lg font-bold">
             <Crown className="h-5 w-5 text-gold" aria-hidden />{" "}{t("Premium")}
           </p>

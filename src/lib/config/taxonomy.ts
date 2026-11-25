@@ -50,24 +50,36 @@ export function xpRangeLabel(d: Difficulty) {
   return `${r.min}–${r.max} XP`;
 }
 
+/** Display order: the everyday "mission worlds" first, legacy categories after. */
 export const CATEGORIES: Category[] = [
   "fitness",
-  "productivity",
+  "health",
+  "creativity",
+  "music",
   "discipline",
-  "lifestyle",
   "learning",
+  "mindfulness",
+  "lifestyle",
+  "productivity",
   "money",
   "social",
+  "custom",
 ];
 
-export const CATEGORY_META: Record<Category, { label: string; icon: string }> = {
-  fitness: { label: "Fitness", icon: "Dumbbell" },
-  productivity: { label: "Productivity", icon: "Target" },
-  discipline: { label: "Discipline", icon: "ShieldCheck" },
-  lifestyle: { label: "Lifestyle", icon: "Leaf" },
-  learning: { label: "Learning", icon: "BookOpen" },
-  money: { label: "Money habits", icon: "Wallet" },
-  social: { label: "Social", icon: "HeartHandshake" },
+/** Each category is a small world: its own colour + hand-drawn glyph (see components/brand/category-icon). */
+export const CATEGORY_META: Record<Category, { label: string; icon: string; color: string; dark: string }> = {
+  fitness: { label: "Fitness", icon: "Dumbbell", color: "#ff8a1f", dark: "#e06a00" },
+  health: { label: "Health", icon: "Heart", color: "#ff4f5e", dark: "#d93241" },
+  creativity: { label: "Creativity", icon: "Pencil", color: "#ff5fae", dark: "#e03d8f" },
+  music: { label: "Music", icon: "Music", color: "#7b5cff", dark: "#5a3ee0" },
+  discipline: { label: "Discipline", icon: "AlarmClock", color: "#475472", dark: "#323d57" },
+  learning: { label: "Learning", icon: "BookOpen", color: "#1e9bf0", dark: "#0b7bc8" },
+  mindfulness: { label: "Mindfulness", icon: "Moon", color: "#11b5c9", dark: "#0a91a3" },
+  lifestyle: { label: "Lifestyle", icon: "Leaf", color: "#3cc13b", dark: "#2a9a29" },
+  productivity: { label: "Productivity", icon: "Target", color: "#ffb81c", dark: "#e09400" },
+  money: { label: "Money habits", icon: "Wallet", color: "#20b07a", dark: "#14895d" },
+  social: { label: "Social", icon: "HeartHandshake", color: "#ff7a59", dark: "#e0573a" },
+  custom: { label: "Custom", icon: "Sparkles", color: "#8a90a2", dark: "#6b7184" },
 };
 
 export function isDifficulty(v: unknown): v is Difficulty {

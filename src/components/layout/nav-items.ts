@@ -1,17 +1,32 @@
-/** Sidebar (desktop) — grouped so related screens sit together. */
-export const NAV = [
-  { href: "/dashboard", label: "Home", icon: "House" },
-  { href: "/proxi", label: "Your PROXI", icon: "Bot" },
-  { href: "/explore", label: "Explore", icon: "Compass" },
-  { href: "/create", label: "Create", icon: "CirclePlus" },
-  { href: "/leaderboard", label: "Rankings", icon: "Trophy" },
-  { href: "/duels", label: "Duels", icon: "Swords" },
-  { href: "/squads", label: "Squads", icon: "Users" },
-  { href: "/notifications", label: "Notifications", icon: "Bell" },
-  { href: "/achievements", label: "Achievements", icon: "Award" },
-  { href: "/review", label: "Verify proofs", icon: "ShieldCheck" },
-  { href: "/profile", label: "Profile", icon: "User" },
-] as const;
+import type { NavIconName } from "@/components/brand/nav-icons";
 
-/** Mobile tab bar: PROXI takes the centre spot as the face of the app. */
-export const BOTTOM_NAV = ["/dashboard", "/explore", "/proxi", "/leaderboard", "/profile"] as const;
+/**
+ * Information architecture: five worlds.
+ *  Today      — what to do now (home)
+ *  Challenges — find, start and create missions
+ *  Friends    — crew, duels, squads and the weekly league
+ *  PROXI      — your companion
+ *  Profile    — you, achievements and settings
+ */
+export const NAV: { href: string; label: string; icon: NavIconName; desktopOnly?: boolean }[] = [
+  { href: "/dashboard", label: "Today", icon: "today" },
+  { href: "/explore", label: "Challenges", icon: "challenges" },
+  { href: "/friends", label: "Friends", icon: "friends" },
+  { href: "/proxi", label: "Your PROXI", icon: "proxi" },
+  { href: "/profile", label: "Profile", icon: "profile" },
+  { href: "/create", label: "Create", icon: "create", desktopOnly: true },
+  { href: "/notifications", label: "Notifications", icon: "bell", desktopOnly: true },
+  { href: "/achievements", label: "Achievements", icon: "award", desktopOnly: true },
+  { href: "/review", label: "Verify proofs", icon: "shield", desktopOnly: true },
+];
+
+export const BOTTOM_NAV = ["/dashboard", "/explore", "/proxi", "/friends", "/profile"] as const;
+
+/** Short tab labels for the phone tab bar. */
+export const TAB_LABEL: Record<string, string> = {
+  "/dashboard": "Today",
+  "/explore": "Challenges",
+  "/friends": "Friends",
+  "/proxi": "PROXI",
+  "/profile": "Profile",
+};

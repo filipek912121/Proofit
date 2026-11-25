@@ -32,7 +32,7 @@ export function Avatar({
   const inner = (
     <span
       className={cn(
-        "relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full font-display font-bold text-white",
+        "relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full font-display font-black text-white",
         ring && !fc && "ring-2 ring-violet-2/60 ring-offset-2 ring-offset-ink",
         !fc && className,
       )}
@@ -40,8 +40,7 @@ export function Avatar({
         width: size,
         height: size,
         fontSize: size * 0.38,
-        background: url ? undefined : `radial-gradient(circle at 30% 25%, ${color}ee, ${color}88 60%, ${color}55)`,
-        boxShadow: url ? undefined : `0 0 0 1px rgb(255 255 255 / .12) inset, 0 6px 20px -6px ${color}aa`,
+        background: url ? undefined : color,
       }}
       aria-hidden
     >

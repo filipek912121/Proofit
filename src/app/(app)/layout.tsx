@@ -9,6 +9,8 @@ import { getEntitlements } from "@/lib/services/entitlements";
 import { pendingInvites } from "@/lib/services/social";
 import { getStore } from "@/lib/data";
 import { getProxiLook } from "@/lib/services/proxi";
+import { liveStreak } from "@/lib/engine/xp";
+import { dayKey } from "@/lib/engine/dates";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireUser();
@@ -38,6 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     proxiStage: proxi.stage,
     proxiLook: proxi.look,
     proxiNew,
+    streak: liveStreak(profile, dayKey()),
   };
   const demo = isDemoMode();
   return (
@@ -46,7 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="lg:pl-64">
         <MobileTopBar user={user} />
         {demo && <DemoBanner />}
-        <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-32 pt-5 sm:px-6 lg:px-10 lg:pb-16 lg:pt-10">
+        <main id="main" className="mx-auto w-full max-w-4xl px-4 pb-32 pt-5 sm:px-6 lg:px-10 lg:pb-16 lg:pt-10">
           {children}
         </main>
       </div>

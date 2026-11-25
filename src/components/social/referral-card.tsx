@@ -24,7 +24,6 @@ export async function ReferralCard({ userId, username, compact }: { userId: stri
   const nextGoal = Math.max(3, Math.ceil((r.rewardedCount + 1) / 3) * 3);
   return (
     <Card glow className="relative overflow-hidden p-5">
-      <span className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-gold/20 blur-3xl" aria-hidden />
       <div className="relative flex items-start gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold ring-1 ring-gold/30">
           <Gift className="h-5 w-5 animate-float" aria-hidden />

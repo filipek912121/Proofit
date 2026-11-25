@@ -6,7 +6,12 @@ export type Category =
   | "lifestyle"
   | "learning"
   | "money"
-  | "social";
+  | "social"
+  | "health"
+  | "creativity"
+  | "music"
+  | "mindfulness"
+  | "custom";
 export type Visibility = "public" | "private";
 export type Plan = "free" | "premium";
 

@@ -1,4 +1,5 @@
 import { getT } from "@/lib/i18n/server";
+import { CategoryIcon } from "@/components/brand/category-icon";
 import { ChartColumn, Crown, Flame, Lock, Target, TrendingUp, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export default async function StatsPage() {
         <div className="flex h-44 items-end gap-[3px]" role="img" aria-label={t("Daily XP over 30 days, best day {n} XP", { n: s.bestDay.xp })}>
           {s.daily.map((d) => (
             <div key={d.day} className="group relative flex h-full flex-1 items-end">
-              <div className={cn("w-full rounded-t-[4px] transition-all", d.xp ? "bg-gradient-to-t from-violet to-electric group-hover:from-violet-2" : "bg-tint/[0.06]")} style={{ height: `${d.xp ? Math.max(6, (d.xp / max) * 100) : 3}%` }} />
+              <div className={cn("w-full rounded-t-[4px] transition-all", d.xp ? "bg-violet group-hover:from-violet-2" : "bg-tint/[0.06]")} style={{ height: `${d.xp ? Math.max(6, (d.xp / max) * 100) : 3}%` }} />
               <span className="pointer-events-none absolute -top-7 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-ink-3 px-2 py-1 text-[10px] ring-1 ring-line group-hover:block">
                 {d.day.slice(5)} · {d.xp} XP
               </span>
@@ -101,7 +102,7 @@ export default async function StatsPage() {
               <li key={c.category}>
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
-                    <Icon name={CATEGORY_META[c.category].icon} className="h-4 w-4 text-muted" /> {t(CATEGORY_META[c.category].label)}
+                    <CategoryIcon category={c.category} size={20} /> {t(CATEGORY_META[c.category].label)}
                   </span>
                   <span className="tabular-nums text-muted">{c.checkins}</span>
                 </div>
@@ -116,7 +117,7 @@ export default async function StatsPage() {
             {s.weekday.map((n, i) => (
               <div key={WEEKDAYS[i]} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
                 <span className="text-[10px] tabular-nums text-subtle">{n}</span>
-                <div className="w-full rounded-t-md bg-gradient-to-t from-electric/60 to-cyan/80" style={{ height: `${Math.max(4, (n / maxWd) * 85)}%` }} />
+                <div className="w-full rounded-t-md bg-electric" style={{ height: `${Math.max(4, (n / maxWd) * 85)}%` }} />
                 <span className="text-xs text-muted">{t(WEEKDAYS[i])}</span>
               </div>
             ))}

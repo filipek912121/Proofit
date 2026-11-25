@@ -50,7 +50,7 @@ export async function signUpAction(_prev: ActionResult | null, fd: FormData): Pr
     const jar = await cookies();
     jar.set(DEMO_COOKIE, id, demoCookieOpts);
     jar.set(DEMO_PROFILE_COOKIE, JSON.stringify({ u: u.data, n: name.slice(0, 40) }), demoCookieOpts);
-    redirect("/dashboard?welcome=1");
+    redirect("/welcome");
   }
   if (!parsed.success) return localize({ ok: false, error: "Check your details.", fieldErrors: zodFieldErrors(parsed.error) });
   if (await getStore().getProfileByUsername(parsed.data.username))
@@ -72,7 +72,7 @@ export async function signUpAction(_prev: ActionResult | null, fd: FormData): Pr
   const referrer = await resolveReferrer(fd.get("ref") as string | null);
   if (referrer && data.user && referrer !== data.user.id) await getStore().updateProfile(data.user.id, { referredBy: referrer });
   if (!data.session) return localize({ ok: true, message: "Check your inbox to confirm your email, then log in." });
-  redirect("/dashboard?welcome=1");
+  redirect("/welcome");
 }
 
 export async function enterDemoAction(): Promise<void> {

@@ -1,5 +1,6 @@
 import { getT } from "@/lib/i18n/server";
-import { ArrowLeft, Calendar, Camera, CircleCheck, Crown, PartyPopper, ShieldCheck, Swords, Users, Zap } from "lucide-react";
+import { ArrowLeft, Check, CircleCheck, Crown, Hourglass, PartyPopper, ShieldCheck, Swords, Trophy } from "lucide-react";
+import { CategoryIcon } from "@/components/brand/category-icon";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,9 +11,8 @@ import { ActionButton } from "@/components/ui/action-button";
 import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { CategoryChip, DifficultyBadge, Pill, VisibilityChip } from "@/components/ui/badges";
 import { LinkButton } from "@/components/ui/button";
-import { Card, SectionTitle } from "@/components/ui/card";
+import { SectionTitle } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
-import { ProgressBar } from "@/components/ui/progress";
 import { joinChallengeAction, leaveChallengeAction } from "@/lib/actions/challenges";
 import { requireUser } from "@/lib/auth";
 import { DIFFICULTY_META } from "@/lib/config/taxonomy";
@@ -47,208 +47,248 @@ export default async function ChallengePage({ params, searchParams }: { params: 
   // so the XP celebration stays on screen instead of jumping to the "completed" view.
   const showCheckIn = isActive || (p?.status === "completed" && Boolean(d.todayCompletion));
 
+  const ranked = [...d.roster].filter((r) => r.participation.status !== "left").sort((a, b) => b.participation.checkins - a.participation.checkins);
+  const myRank = ranked.findIndex((r) => r.profile.id === me.id) + 1;
+  const dayNumber = d.window ? Math.min(c.durationDays, Math.max(1, days.indexOf(today) + 1 || (today > days[days.length - 1] ? c.durationDays : 1))) : 0;
+  const daysLeft = d.window ? Math.max(0, days.length - dayNumber) : 0;
+
   return (
-    <div className="space-y-6">
-      <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg">
-        <ArrowLeft className="h-4 w-4" aria-hidden />{" "}{t("Explore")}
+    <div className="space-y-8">
+      <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-subtle hover:text-fg">
+        <ArrowLeft className="h-4 w-4" aria-hidden />{" "}{t("Challenges")}
       </Link>
 
       {created && (
-        <Card glow className="flex items-center gap-3 p-4 animate-pop" role="status">
-          <PartyPopper className="h-6 w-6 text-violet-2" aria-hidden />
+        <div className="flex items-center gap-3 rounded-2xl border-2 border-green/60 bg-green/10 p-4 animate-pop" role="status">
+          <PartyPopper className="h-6 w-6 text-green-dark" aria-hidden />
           <p className="text-sm">
-            <span className="font-semibold">{t("Challenge launched!")}</span> {c.isTemplate ? t("Saved as a template — use it from the Create page.") : t("Share it with friends or start a duel on it.")}
+            <span className="font-extrabold">{t("Challenge launched!")}</span> {c.isTemplate ? t("Saved as a template — use it from the Create page.") : t("Share it with friends or start a duel on it.")}
           </p>
-        </Card>
+        </div>
       )}
 
-      <section className="glass neon-border relative overflow-hidden rounded-3xl p-6 sm:p-8 animate-rise">
-        <span className={cn("pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-25 blur-3xl", m.dot)} aria-hidden />
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-2">
-            <DifficultyBadge difficulty={c.difficulty} size="md" />
+      {/* Mission header */}
+      <header className="flex items-start gap-4 animate-rise">
+        <CategoryIcon category={c.category} size={76} className="shrink-0" />
+        <div className="min-w-0">
+          <h1 className="font-display text-[28px] font-black leading-tight">{t(c.title)}</h1>
+          <p className="mt-1 text-sm font-bold text-subtle">
+            {durationLabel(c.durationDays, t)} · <span className={m.text}>+{c.xpReward} XP</span> {t("per day")} · {t.p(c.participants, "{n} player", "{n} players")}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <DifficultyBadge difficulty={c.difficulty} />
             <CategoryChip category={c.category} />
-            <VisibilityChip visibility={c.visibility} squad={Boolean(c.squadId)} />
+            {c.visibility === "private" && <VisibilityChip visibility={c.visibility} squad={Boolean(c.squadId)} />}
             {c.isTemplate && <Pill tone="gold">{t("Template")}</Pill>}
           </div>
-          <h1 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">{t(c.title)}</h1>
-          <p className="mt-3 max-w-2xl text-muted">{t(c.description)}</p>
-          <p className="mt-3 text-sm text-subtle">
-            {t("Created by")}{" "}<span className="text-fg">{c.creatorName ?? t("a member")}</span>
-          </p>
-          <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { I: Zap, k: t("XP per day"), v: `${c.xpReward} XP`, cls: m.text },
-              { I: Calendar, k: t("Duration"), v: durationLabel(c.durationDays, t) },
-              { I: Users, k: t("Participants"), v: String(c.participants) },
-              { I: c.requiresProof ? Camera : CircleCheck, k: t("Verification"), v: c.requiresProof ? t("Proof required") : t("Self check-in") },
-            ].map(({ I, k, v, cls }) => (
-              <div key={k} className="rounded-2xl bg-tint/[0.04] p-3 ring-1 ring-line">
-                <dt className="flex items-center gap-1.5 text-xs text-muted">
-                  <I className="h-3.5 w-3.5" aria-hidden /> {k}
-                </dt>
-                <dd className={cn("mt-1 font-display text-base font-bold leading-snug break-words sm:text-lg", cls)}>{v}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
-      </section>
+      </header>
+      <p className="-mt-4 text-[15px] text-muted">{t(c.description)}</p>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div className="space-y-6">
-          <Card className="p-5 sm:p-6" id="checkin">
-            {showCheckIn && d.window ? (
+      {/* Today: the one thing to do */}
+      <section id="checkin" className="scroll-mt-20">
+        {showCheckIn && d.window ? (
+          <>
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <p className="text-sm font-black uppercase tracking-wider text-violet-2">
+                {t("Day {n} of {total}", { n: dayNumber, total: c.durationDays })}
+              </p>
+              <p className="text-sm font-bold text-subtle">{daysLeft > 0 ? t.p(daysLeft, "{n} day left", "{n} days left") : t("Last day!")}</p>
+            </div>
+            {d.canCheckIn || d.todayCompletion ? (
+              <CheckInForm
+                challengeId={c.id}
+                tasks={c.tasks}
+                requiresProof={c.requiresProof}
+                today={d.todayCompletion && d.todayCompletion.status !== "rejected" ? { status: d.todayCompletion.status, xp: d.todayCompletion.xpAwarded } : null}
+                proxi={proxiLook}
+                category={c.category}
+              />
+            ) : (
+              <p className="text-sm text-muted">{t("Check-ins are closed for this window.")}</p>
+            )}
+          </>
+        ) : (
+          <div className="rounded-3xl border-2 border-line p-6 text-center">
+            {p?.status === "completed" ? (
               <>
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <h2 className="font-display text-lg font-bold">{t("Today's check-in")}</h2>
-                  <span className="text-sm text-muted tabular-nums">
-                    {t("{done}/{total} done", { done: p!.checkins, total: c.durationDays })}
-                  </span>
-                </div>
-                <ProgressBar value={p!.checkins / c.durationDays} tone={c.difficulty} label={t("Challenge progress")} />
-                <ol className="my-5 flex flex-wrap gap-1.5" aria-label={t("Daily progress")}>
-                  {days.map((day, i) => {
-                    const st = byDay.get(day);
-                    const isToday = day === today;
-                    const past = day < today;
-                    return (
-                      <li
-                        key={day}
-                        title={`${t("Day {n}", { n: i + 1 })} · ${day}`}
-                        aria-label={`${t("Day {n}", { n: i + 1 })}: ${t(st === "approved" ? "done" : st === "pending" ? "pending" : past ? "missed" : isToday ? "today" : "upcoming")}`}
-                        className={cn(
-                          "grid h-8 w-8 place-items-center rounded-lg text-[11px] font-bold ring-1",
-                          st === "approved" && cn(m.dot, "text-black ring-transparent"),
-                          st === "pending" && "bg-electric/20 text-blue-200 ring-electric/40",
-                          !st && past && "bg-extreme/10 text-red-300/70 ring-extreme/25",
-                          !st && isToday && "text-fg ring-2 ring-violet-2",
-                          !st && !past && !isToday && "text-subtle ring-line",
-                        )}
-                      >
-                        {i + 1}
-                      </li>
-                    );
-                  })}
-                </ol>
-                {d.canCheckIn || d.todayCompletion ? (
-                  <CheckInForm
-                    challengeId={c.id}
-                    tasks={c.tasks}
-                    requiresProof={c.requiresProof}
-                    today={d.todayCompletion && d.todayCompletion.status !== "rejected" ? { status: d.todayCompletion.status, xp: d.todayCompletion.xpAwarded } : null}
-                    proxi={proxiLook}
-                  />
-                ) : (
-                  <p className="text-sm text-muted">{t("Check-ins are closed for this window.")}</p>
-                )}
+                <Trophy className="mx-auto mb-2 h-12 w-12 text-gold" aria-hidden />
+                <h2 className="font-display text-2xl font-black">{t("You completed this challenge!")}</h2>
+                <p className="mt-1 text-sm text-muted">{t("Run it again to keep the habit going.")}</p>
+              </>
+            ) : p?.status === "failed" ? (
+              <>
+                <h2 className="font-display text-2xl font-black">{t("This run ended")}</h2>
+                <p className="mt-1 text-sm text-muted">{t("You checked in {done} of {total} days. Every attempt counts — try again.", { done: p.checkins, total: c.durationDays })}</p>
               </>
             ) : (
-              <div className="text-center">
-                {p?.status === "completed" ? (
-                  <>
-                    <CircleCheck className="mx-auto mb-2 h-10 w-10 text-easy" aria-hidden />
-                    <h2 className="font-display text-xl font-bold">{t("You completed this challenge!")}</h2>
-                    <p className="mt-1 text-sm text-muted">{t("Run it again to keep the habit going.")}</p>
-                  </>
-                ) : p?.status === "failed" ? (
-                  <>
-                    <h2 className="font-display text-xl font-bold">{t("This run ended")}</h2>
-                    <p className="mt-1 text-sm text-muted">
-                      {t("You checked in {done} of {total} days. Every attempt counts — try again.", { done: p.checkins, total: c.durationDays })}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="font-display text-xl font-bold">{c.isTemplate ? t("This is a template") : t("Ready to commit?")}</h2>
-                    <p className="mt-1 text-sm text-muted">
-                      {c.isTemplate ? t("Templates can't be joined. Create a live challenge from it.") : t("Check in once a day for {duration}. Starts today.", { duration: durationLabel(c.durationDays, t) })}
-                    </p>
-                  </>
-                )}
-                <div className="mt-5 flex flex-col items-center gap-2">
-                  {c.isTemplate ? (
-                    <LinkButton href={`/create?template=${c.id}`}>{t("Use template")}</LinkButton>
-                  ) : d.slotsLeft > 0 ? (
-                    <ActionButton size="lg" action={joinChallengeAction.bind(null, c.id)} successTitle={t("Challenge joined!")} icon={<Zap className="h-5 w-5" />}>
-                      {p ? t("Start again") : t("Join challenge")}
-                    </ActionButton>
-                  ) : (
-                    <>
-                      <p className="text-sm text-orange-300">{t("You've hit your active challenge limit.")}</p>
-                      {d.plan === "free" && (
-                        <LinkButton href="/premium" variant="gold" icon={<Crown className="h-4 w-4" />}>
-                          {t("Upgrade for more slots")}
-                        </LinkButton>
-                      )}
-                    </>
-                  )}
-                  {!c.isTemplate && d.slotsLeft > 0 && <p className="text-xs text-subtle">{t.p(d.slotsLeft, "{n} free slot on your {plan} plan", "{n} free slots on your {plan} plan", { plan: d.plan === "premium" ? "Premium" : t("Free") })}</p>}
-                </div>
-              </div>
+              <>
+                <h2 className="font-display text-2xl font-black">{c.isTemplate ? t("This is a template") : t("Ready to commit?")}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {c.isTemplate ? t("Templates can't be joined. Create a live challenge from it.") : t("Check in once a day for {duration}. Starts today.", { duration: durationLabel(c.durationDays, t) })}
+                </p>
+                <ul className="mx-auto mt-4 max-w-sm space-y-1.5 text-left">
+                  {c.tasks.map((task) => (
+                    <li key={task} className="flex items-center gap-2 text-sm font-bold">
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-violet" aria-hidden /> {t(task)}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
-          </Card>
+            <div className="mt-5 flex flex-col items-center gap-2">
+              {c.isTemplate ? (
+                <LinkButton href={`/create?template=${c.id}`}>{t("Use template")}</LinkButton>
+              ) : d.slotsLeft > 0 ? (
+                <ActionButton size="lg" variant="success" className="w-full max-w-xs" action={joinChallengeAction.bind(null, c.id)} successTitle={t("Challenge joined!")}>
+                  {p ? t("Start again") : t("Join challenge")}
+                </ActionButton>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-orange-300">{t("You've hit your active challenge limit.")}</p>
+                  {d.plan === "free" && (
+                    <LinkButton href="/premium" variant="gold" icon={<Crown className="h-4 w-4" />}>
+                      {t("Upgrade for more slots")}
+                    </LinkButton>
+                  )}
+                </>
+              )}
+              {!c.isTemplate && d.slotsLeft > 0 && <p className="text-xs font-semibold text-subtle">{t.p(d.slotsLeft, "{n} free slot on your {plan} plan", "{n} free slots on your {plan} plan", { plan: d.plan === "premium" ? "Premium" : t("Free") })}</p>}
+            </div>
+          </div>
+        )}
+        {c.requiresProof && (
+          <p className="mt-3 flex items-start gap-2 text-xs font-semibold text-subtle">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {t("Proof is reviewed by the challenge creator or verified finishers. Uploading a photo doesn't automatically count as completion.")}
+          </p>
+        )}
+      </section>
 
-          <Card className="p-5 sm:p-6">
-            <SectionTitle title={t("Daily tasks")} />
-            <ul className="space-y-2">
-              {c.tasks.map((task, i) => (
-                <li key={task} className="flex items-center gap-3 rounded-xl bg-tint/[0.03] px-4 py-3 text-sm ring-1 ring-line">
-                  <span className={cn("grid h-6 w-6 place-items-center rounded-md text-xs font-bold", m.bg, m.text)}>{i + 1}</span>
-                  {t(task)}
+      {/* The mission path */}
+      {d.window && p && (
+        <section aria-label={t("Your path")}>
+          <h2 className="mb-4 font-display text-[19px] font-extrabold">{t("Your path")}</h2>
+          <MissionPath
+            days={days}
+            today={today}
+            byDay={byDay}
+            labels={{ day: (n) => t("Day {n}", { n }), done: t("done"), pending: t("pending"), missed: t("missed"), today: t("today"), upcoming: t("upcoming"), finish: t("Finish line") }}
+          />
+        </section>
+      )}
+
+      {/* Standing + players */}
+      {!c.isTemplate && (
+        <section aria-label={t("Players")}>
+          <SectionTitle title={t("Players")} subtitle={myRank > 0 && ranked.length > 1 ? t("You're #{rank} of {n}", { rank: myRank, n: ranked.length }) : t("{n} in total", { n: c.participants })} />
+          {ranked.length ? (
+            <ol className="divide-y-2 divide-line rounded-2xl border-2 border-line">
+              {ranked.map((r, i) => (
+                <li key={r.profile.id}>
+                  <Link href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className={cn("flex items-center gap-3 px-4 py-2.5", r.profile.id === me.id ? "bg-green/10" : "hover:bg-ink-3")}>
+                    <span className={cn("w-5 text-center font-black tabular-nums", i < 3 ? "text-gold-dark" : "text-subtle")}>{i + 1}</span>
+                    <Avatar {...avatarOf(r.profile)} size={36} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-extrabold">
+                        {r.profile.displayName} {r.profile.id === me.id && <span className="text-subtle">{t("(you)")}</span>}
+                      </span>
+                      <span className="block text-xs font-semibold text-subtle">{t(STATUS_LABEL[r.participation.status])}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-black tabular-nums text-green-dark">
+                      {r.participation.checkins} <CircleCheck className="h-4 w-4" aria-label={t("check-ins")} />
+                    </span>
+                  </Link>
                 </li>
               ))}
-            </ul>
-            {c.requiresProof && (
-              <p className="mt-4 flex items-start gap-2 text-xs text-subtle">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> Proof is reviewed by the creator{c.isOfficial ? " or verified finishers" : ""}. XP is only awarded after approval.
-              </p>
-            )}
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          {!c.isTemplate && (
-            <Card className="space-y-2 p-5">
-              <LinkButton href={`/duels?challenge=${c.id}`} variant="secondary" className="w-full" icon={<Swords className="h-4 w-4" />}>
-                {t("Duel a friend on this")}
-              </LinkButton>
-              {d.isCreator && c.requiresProof && (
-                <LinkButton href="/review" variant="secondary" className="w-full" icon={<ShieldCheck className="h-4 w-4" />}>
-                  {t("Review submitted proofs")}
-                </LinkButton>
-              )}
-              {isActive && (
-                <ActionButton variant="ghost" className="w-full" action={leaveChallengeAction.bind(null, c.id)} confirm={t("Leave this challenge? Your current run will end.")}>
-                  {t("Leave challenge")}
-                </ActionButton>
-              )}
-            </Card>
+            </ol>
+          ) : (
+            <p className="text-sm text-muted">{t("Nobody yet — be the first.")}</p>
           )}
-          <Card className="p-5">
-            <SectionTitle title={t("Participants")} subtitle={t("{n} in total", { n: c.participants })} />
-            {d.roster.length ? (
-              <ul className="space-y-1">
-                {d.roster.map((r) => (
-                  <li key={r.profile.id}>
-                    <Link href={r.profile.id === me.id ? "/profile" : `/u/${r.profile.username}`} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-tint/5">
-                      <Avatar {...avatarOf(r.profile)} size={34} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">
-                          {r.profile.displayName} {r.profile.id === me.id && <span className="text-subtle">{t("(you)")}</span>}
-                        </span>
-                        <span className="block text-xs text-subtle">{t(STATUS_LABEL[r.participation.status])}</span>
-                      </span>
-                      <span className="text-sm tabular-nums text-muted">{r.participation.checkins} ✓</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted">{t("Nobody yet — be the first.")}</p>
-            )}
-          </Card>
+        </section>
+      )}
+
+      {!c.isTemplate && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <LinkButton href={`/duels?challenge=${c.id}`} variant="secondary" className="flex-1" icon={<Swords className="h-4 w-4" />}>
+            {t("Duel a friend on this")}
+          </LinkButton>
+          {d.isCreator && c.requiresProof && (
+            <LinkButton href="/review" variant="secondary" className="flex-1" icon={<ShieldCheck className="h-4 w-4" />}>
+              {t("Review submitted proofs")}
+            </LinkButton>
+          )}
+          {isActive && (
+            <ActionButton variant="ghost" action={leaveChallengeAction.bind(null, c.id)} confirm={t("Leave this challenge? Your current run will end.")}>
+              {t("Leave challenge")}
+            </ActionButton>
+          )}
         </div>
-      </div>
+      )}
     </div>
+  );
+}
+
+/**
+ * A winding path of day nodes (zig-zag), ending in a trophy. Done days are solid
+ * green coins, today is the big violet node, missed days stay grey (no shaming),
+ * future days are quiet. Long challenges (> 14 days) use a compact grid instead.
+ */
+function MissionPath({
+  days,
+  today,
+  byDay,
+  labels,
+}: {
+  days: string[];
+  today: string;
+  byDay: Map<string, string>;
+  labels: { day: (n: number) => string; done: string; pending: string; missed: string; today: string; upcoming: string; finish: string };
+}) {
+  const state = (day: string) => {
+    const st = byDay.get(day);
+    return st === "approved" ? "done" : st === "pending" ? "pending" : day === today ? "today" : day < today ? "missed" : "upcoming";
+  };
+  const STYLE = {
+    done: "bg-green text-white [--lip:var(--color-green-dark)]",
+    pending: "bg-gold text-[#3b2a00] [--lip:var(--color-gold-dark)]",
+    today: "bg-violet text-white [--lip:var(--color-violet-dark)]",
+    missed: "bg-ink-3 text-subtle [--lip:var(--color-line-strong)]",
+    upcoming: "bg-ink-3 text-subtle/70 [--lip:var(--color-line)]",
+  } as const;
+  if (days.length > 14)
+    return (
+      <ol className="grid grid-cols-7 gap-2">
+        {days.map((day, i) => {
+          const s = state(day);
+          return (
+            <li key={day} aria-label={`${labels.day(i + 1)}: ${labels[s]}`} className={cn("btn-3d grid aspect-square place-items-center rounded-full text-sm font-black [--btn-depth:3px]", STYLE[s], s === "today" && "ring-4 ring-violet/25")}>
+              {s === "done" ? <Check className="h-4 w-4" strokeWidth={4} aria-hidden /> : i + 1}
+            </li>
+          );
+        })}
+      </ol>
+    );
+  // Horizontal offsets that make the path snake left and right.
+  const OFF = [0, 52, 78, 52, 0, -52, -78, -52];
+  return (
+    <ol className="relative mx-auto flex max-w-xs flex-col items-center gap-4 pb-2 pt-10">
+      {days.map((day, i) => {
+        const s = state(day);
+        return (
+          <li key={day} className="relative" style={{ transform: `translateX(${OFF[i % OFF.length]}px)` }} aria-label={`${labels.day(i + 1)}: ${labels[s]}`}>
+            {s === "today" && <span className="absolute -inset-2 rounded-full border-4 border-violet/25 animate-pulse" aria-hidden />}
+            <span className={cn("btn-3d relative grid place-items-center rounded-full font-black [--btn-depth:6px]", s === "today" ? "h-[72px] w-[72px] text-xl" : "h-16 w-16 text-lg", STYLE[s])}>
+              {s === "done" ? <Check className="h-8 w-8" strokeWidth={4} aria-hidden /> : s === "pending" ? <Hourglass className="h-7 w-7" aria-hidden /> : i + 1}
+            </span>
+            {s === "today" && <span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xl border-2 border-violet/40 bg-violet-soft px-2.5 py-1 text-xs font-black uppercase text-violet-2 animate-bob">{labels.today}</span>}
+          </li>
+        );
+      })}
+      <li className="relative mt-1" aria-label={labels.finish}>
+        <span className={cn("btn-3d grid h-20 w-20 place-items-center rounded-3xl [--btn-depth:6px]", days.every((d) => byDay.get(d) === "approved") ? "bg-gold [--lip:var(--color-gold-dark)]" : "bg-ink-3 [--lip:var(--color-line-strong)]")}>
+          <Trophy className={cn("h-10 w-10", days.every((d) => byDay.get(d) === "approved") ? "text-white" : "text-subtle")} aria-hidden />
+        </span>
+      </li>
+    </ol>
   );
 }

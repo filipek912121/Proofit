@@ -10,6 +10,7 @@ import type { ProofKind } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 import { Confetti } from "@/components/ui/confetti";
 import { ProxiBuddy } from "@/components/proxi/proxi-buddy";
+import { propForCategory } from "@/lib/proxi/props";
 import { ProxiCelebration } from "@/components/proxi/proxi-celebration";
 import { XpGainBar } from "@/components/proxi/xp-gain-bar";
 import type { ProxiLook, ProxiStage } from "@/lib/proxi/config";
@@ -17,6 +18,7 @@ import { pickLine } from "@/lib/proxi/messages";
 import { CountUp } from "@/components/ui/count-up";
 import { Field, FormAlert, Input, Textarea } from "@/components/ui/field";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Button } from "@/components/ui/button";
 
 export function CheckInForm({
   challengeId,
@@ -24,6 +26,7 @@ export function CheckInForm({
   requiresProof,
   today,
   proxi,
+  category,
 }: {
   challengeId: string;
   tasks: string[];
@@ -32,6 +35,8 @@ export function CheckInForm({
   today: { status: "approved" | "pending"; xp: number } | null;
   /** The user's PROXI, which reacts to the result. */
   proxi: { stage: ProxiStage; look: ProxiLook };
+  /** Challenge category — PROXI shows up with matching gear. */
+  category?: string;
 }) {
   const t = useT();
   // Kept mounted across the post-action refresh so the result celebration stays visible.
@@ -44,7 +49,7 @@ export function CheckInForm({
 
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
 
-  if (state?.ok && state.data) return <CheckInResultView r={state.data} proxi={proxi} />;
+  if (state?.ok && state.data) return <CheckInResultView r={state.data} proxi={proxi} category={category} />;
   if (today) return <TodayStatus status={today.status} xp={today.xp} />;
 
   const allDone = tasks.every((task) => done.includes(task));
@@ -54,7 +59,7 @@ export function CheckInForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="challengeId" value={challengeId} />
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">{t("Today's tasks")}</legend>
+        <legend className="mb-3 font-display text-[19px] font-extrabold">{t("Today's goal")}</legend>
         <ul className="space-y-2">
           {tasks.map((task) => {
             const checked = done.includes(task);
@@ -62,8 +67,8 @@ export function CheckInForm({
               <li key={task}>
                 <label
                   className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 ring-1 transition",
-                    checked ? "bg-easy/10 ring-easy/35" : "bg-tint/[0.03] ring-line hover:ring-line-strong",
+                    "flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3.5 transition-colors",
+                    checked ? "border-green/60 bg-green/10" : "border-line hover:bg-ink-3",
                   )}
                 >
                   <input
@@ -76,14 +81,14 @@ export function CheckInForm({
                   />
                   <span
                     className={cn(
-                      "grid h-6 w-6 shrink-0 place-items-center rounded-lg ring-1 transition peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2",
-                      checked ? "bg-easy text-black ring-easy" : "ring-line-strong",
+                      "grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 transition peer-focus-visible:ring-2 peer-focus-visible:ring-violet-2",
+                      checked ? "border-green bg-green text-white" : "border-line-strong",
                     )}
                     aria-hidden
                   >
-                    {checked && <Check className="h-4 w-4 animate-check" strokeWidth={3} />}
+                    {checked && <Check className="h-5 w-5 animate-check" strokeWidth={3.5} />}
                   </span>
-                  <span className={cn("text-sm", checked && "text-fg/70 line-through decoration-easy/60")}>{t(task)}</span>
+                  <span className={cn("text-[15px] font-bold", checked && "text-muted")}>{t(task)}</span>
                 </label>
               </li>
             );
@@ -111,11 +116,11 @@ export function CheckInForm({
                 aria-checked={kind === k}
                 onClick={() => setKind(k)}
                 className={cn(
-                  "flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium ring-1 transition",
-                  kind === k ? "bg-violet/15 text-fg ring-violet/50" : "text-muted ring-line hover:text-fg",
+                  "flex flex-col items-center justify-center gap-1 rounded-2xl border-2 py-3 text-xs font-extrabold uppercase tracking-wide transition-colors",
+                  kind === k ? "border-violet bg-violet-soft text-violet-2" : "border-line text-muted hover:bg-ink-3",
                 )}
               >
-                <I className="h-4 w-4" aria-hidden /> {t(label)}
+                <I className="h-6 w-6" aria-hidden /> {t(label)}
               </button>
             ))}
           </div>
@@ -193,7 +198,7 @@ export function CheckInForm({
       </Field>
 
       {state && !state.ok && <FormAlert>{state.error}</FormAlert>}
-      <SubmitButton size="lg" className="h-auto min-h-13 w-full whitespace-normal py-3 text-center" disabled={!allDone} pendingText={requiresProof ? t("Uploading proof…") : t("Checking in…")} icon={<CircleCheck className="h-5 w-5" />}>
+      <SubmitButton size="lg" variant={allDone ? "success" : "secondary"} className="h-auto min-h-14 w-full whitespace-normal py-3 text-center" disabled={!allDone} pendingText={requiresProof ? t("Uploading proof…") : t("Checking in…")} icon={<CircleCheck className="h-5 w-5" />}>
         {allDone ? (requiresProof ? t("Submit for verification") : t("Complete today’s check-in")) : t.p(tasks.length, "Tick {n} task to continue", "Tick all {n} tasks to continue")}
       </SubmitButton>
     </form>
@@ -202,82 +207,137 @@ export function CheckInForm({
 
 function TodayStatus({ status, xp }: { status: "approved" | "pending"; xp: number }) {
   const t = useT();
+  const pending = status === "pending";
   return (
-    <div className={cn("flex items-center gap-3 rounded-2xl p-4 ring-1", status === "pending" ? "bg-electric/10 ring-electric/30" : "bg-easy/10 ring-easy/30")} role="status">
-      {status === "pending" ? <Hourglass className="h-6 w-6 shrink-0 text-blue-300" aria-hidden /> : <CircleCheck className="h-6 w-6 shrink-0 text-easy" aria-hidden />}
+    <div className={cn("flex items-center gap-4 rounded-2xl border-2 p-4", pending ? "border-gold/50 bg-gold/10" : "border-green/50 bg-green/10")} role="status">
+      <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-full text-white", pending ? "bg-gold" : "bg-green")}>
+        {pending ? <Hourglass className="h-6 w-6" aria-hidden /> : <Check className="h-7 w-7" strokeWidth={3.5} aria-hidden />}
+      </span>
       <div>
-        <p className="font-semibold">{status === "pending" ? t("Proof pending verification") : t("Checked in today · +{n} XP", { n: xp })}</p>
-        <p className="text-sm text-muted">{status === "pending" ? t("XP is added once a reviewer approves it.") : t("Come back tomorrow to keep your streak.")}</p>
+        <p className="font-extrabold">{pending ? t("Proof pending verification") : t("Checked in today · +{n} XP", { n: xp })}</p>
+        <p className="text-sm text-muted">{pending ? t("XP is added once a reviewer approves it.") : t("Come back tomorrow to keep your streak.")}</p>
       </div>
     </div>
   );
 }
 
-function CheckInResultView({ r, proxi }: { r: import("@/lib/services/challenges").CheckInResult; proxi: { stage: ProxiStage; look: ProxiLook } }) {
+/**
+ * The payoff moment, modelled on a "lesson complete" screen: full screen, PROXI
+ * front and centre, three stat tiles, one button. Level-ups / evolutions / new
+ * badges follow as a second beat after "Continue" so nothing competes.
+ */
+function CheckInResultView({ r, proxi, category }: { r: import("@/lib/services/challenges").CheckInResult; proxi: { stage: ProxiStage; look: ProxiLook }; category?: string }) {
   const t = useT();
   const total = r.xp + r.streakBonus + r.completionBonus;
-  const [line] = useState(() => (r.status === "pending" ? "Proof submitted" : r.challengeCompleted ? pickLine("challengeDone") : pickLine("xp")));
+  const [line] = useState(() => (r.status === "pending" ? "Proof sent! I'll keep an eye on it." : r.challengeCompleted ? pickLine("challengeDone") : pickLine("xp")));
+  const [open, setOpen] = useState(true);
+  const [secondBeat, setSecondBeat] = useState(false);
   const evolvedTo = r.stageAfter > r.stageBefore ? (r.stageAfter as ProxiStage) : null;
   const celebrate = r.status === "approved" && (Boolean(r.levelUp) || Boolean(evolvedTo) || r.achievements.length > 0 || r.newProxiItems.length > 0);
   const stage = (r.stageAfter as ProxiStage) || proxi.stage;
-  if (r.status === "pending")
-    return (
-      <div className="rounded-2xl bg-electric/10 p-5 ring-1 ring-electric/30 animate-pop" role="status">
-        <ProxiBuddy stage={stage} look={proxi.look} mood="motivated" line="Proof sent! I'll keep an eye on it." size={84} />
-        <p className="mt-3 text-sm font-semibold">{t("Proof submitted")}</p>
-        <p className="text-sm text-muted">{t("Pending verification. XP is awarded once a reviewer approves it.")}</p>
-        <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-300">
-          <Flame className="h-4 w-4 animate-flame" aria-hidden /> {t("Streak")}: {t.p(r.streak, "{n} day", "{n} days")}
-        </p>
-      </div>
-    );
+  const pending = r.status === "pending";
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (!pending && "vibrate" in navigator) navigator.vibrate?.(30);
+    return () => void (document.body.style.overflow = prev);
+  }, [open, pending]);
+
+  const close = () => {
+    setOpen(false);
+    if (celebrate) setSecondBeat(true);
+  };
+
+  const summary = pending ? (
+    <TodayStatus status="pending" xp={0} />
+  ) : (
+    <TodayStatus status="approved" xp={total} />
+  );
+
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-violet/[0.08] p-5 ring-1 ring-violet/30 animate-pop" role="status">
-      <Confetti />
-      <div className="relative">
-        <ProxiBuddy
-          stage={stage}
-          look={proxi.look}
-          mood={r.challengeCompleted ? "excited" : "happy"}
-          line={line}
-          params={{ n: total }}
-          size={92}
-          extra={
-            <p className="font-display text-3xl font-bold text-gradient">
-              <CountUp value={total} prefix="+" suffix=" XP" />
-            </p>
-          }
-        />
-        <p className="mt-3 text-sm text-muted">{t("Check-in complete. See you tomorrow.")}</p>
-        <div className="mt-3">
-          <XpGainBar from={r.xpBefore} to={r.xpAfter} />
+    <div role="status">
+      {open ? (
+        <div className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-ink px-6 pt-10 pb-safe animate-fade">
+          {!pending && <Confetti count={40} />}
+          <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center text-center">
+            <ProxiBuddy stage={stage} look={proxi.look} mood={pending ? "motivated" : r.challengeCompleted ? "excited" : "proud"} line={line} params={{ n: total }} size={170} layout="stack" prop={r.challengeCompleted ? "trophy" : propForCategory(category)} />
+            <h2 className={cn("mt-6 font-display text-[34px] font-black leading-tight animate-levelup", pending ? "text-electric" : "text-gold-dark")}>
+              {pending ? t("Proof submitted") : r.challengeCompleted ? t("Mission complete!") : t("Day complete!")}
+            </h2>
+            <p className="mt-1 font-bold text-muted">{pending ? t("Pending verification. XP is awarded once a reviewer approves it.") : t("Check-in complete. See you tomorrow.")}</p>
+
+            <div className="mt-6 grid w-full grid-cols-3 gap-2.5">
+              {!pending && (
+                <StatTile tone="gold" label={t("Total XP")}>
+                  <Zap className="h-5 w-5 fill-current" aria-hidden />
+                  <CountUp value={total} prefix="+" suffix=" XP" />
+                </StatTile>
+              )}
+              <StatTile tone="flame" label={t("Streak")}>
+                <Flame className="h-5 w-5 fill-current" aria-hidden />
+                {r.streak}
+              </StatTile>
+              {r.completionBonus > 0 ? (
+                <StatTile tone="green" label={t("Finish bonus")}>
+                  <Trophy className="h-5 w-5" aria-hidden />+{r.completionBonus}
+                </StatTile>
+              ) : r.streakBonus > 0 ? (
+                <StatTile tone="green" label={t("Streak bonus")}>
+                  <Sparkles className="h-5 w-5" aria-hidden />+{r.streakBonus}
+                </StatTile>
+              ) : (
+                !pending && (
+                  <StatTile tone="violet" label={t("Base")}>
+                    <Check className="h-5 w-5" strokeWidth={3} aria-hidden />+{r.xp}
+                  </StatTile>
+                )
+              )}
+            </div>
+            {!pending && (
+              <div className="mt-5 w-full text-left">
+                <XpGainBar from={r.xpBefore} to={r.xpAfter} />
+              </div>
+            )}
+            {r.achievements.length > 0 && (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {r.achievements.map((a) => (
+                  <span key={a} className="inline-flex items-center gap-1 rounded-full bg-gold/20 px-3 py-1.5 text-xs font-extrabold text-gold-dark">
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden /> {t(a)}
+                  </span>
+                ))}
+              </div>
+            )}
+            {r.capped && <p className="mt-3 text-xs font-semibold text-subtle">{t("Daily XP cap reached — keep it up tomorrow.")}</p>}
+          </div>
+          <div className="mx-auto w-full max-w-sm py-6">
+            <Button size="lg" variant={pending ? "primary" : "success"} className="w-full" onClick={close} autoFocus>
+              {t("Continue")}
+            </Button>
+          </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 rounded-full bg-tint/10 px-3 py-1.5">
-            <Zap className="h-3.5 w-3.5" aria-hidden /> {t("{n} base", { n: r.xp })}
-          </span>
-          {r.streakBonus > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-hard/15 px-3 py-1.5 text-orange-300">
-              <Flame className="h-3.5 w-3.5 animate-flame" aria-hidden /> {t("+{n} streak ({d}d)", { n: r.streakBonus, d: r.streak })}
-            </span>
-          )}
-          {r.completionBonus > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-easy/15 px-3 py-1.5 text-green-300">
-              <Trophy className="h-3.5 w-3.5" aria-hidden /> {t("+{n} finish bonus", { n: r.completionBonus })}
-            </span>
-          )}
-          {r.achievements.map((a) => (
-            <span key={a} className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-3 py-1.5 text-gold">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {t(a)}
-            </span>
-          ))}
-        </div>
-        {r.challengeCompleted && <p className="mt-3 text-sm font-semibold text-green-300">{t("Challenge completed! 🎉")}</p>}
-        {r.capped && <p className="mt-3 text-xs text-subtle">{t("Daily XP cap reached — keep it up tomorrow.")}</p>}
-      </div>
-      {celebrate && (
-        <ProxiCelebration data={{ levelUp: r.levelUp, evolvedTo, achievements: r.achievements, newItems: r.newProxiItems }} stage={stage} look={proxi.look} />
+      ) : (
+        summary
       )}
+      {secondBeat && (
+        <ProxiCelebration data={{ levelUp: r.levelUp, evolvedTo, achievements: r.achievements, newItems: r.newProxiItems }} stage={stage} look={proxi.look} onClose={() => setSecondBeat(false)} />
+      )}
+    </div>
+  );
+}
+
+const TILE = {
+  gold: "border-gold text-gold-dark [--h:var(--color-gold)]",
+  flame: "border-flame text-flame [--h:var(--color-flame)]",
+  green: "border-green text-green-dark [--h:var(--color-green)]",
+  violet: "border-violet text-violet-2 [--h:var(--color-violet)]",
+};
+function StatTile({ tone, label, children }: { tone: keyof typeof TILE; label: string; children: React.ReactNode }) {
+  return (
+    <div className={cn("overflow-hidden rounded-2xl border-2 animate-pop", TILE[tone])}>
+      <p className="truncate bg-[var(--h)] px-1 py-1 text-[10px] font-black uppercase tracking-wider text-white">{label}</p>
+      <p className="flex items-center justify-center gap-1 px-1 py-2.5 text-[17px] font-black tabular-nums">{children}</p>
     </div>
   );
 }

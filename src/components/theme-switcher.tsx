@@ -1,19 +1,18 @@
 "use client";
 
-import { Check, Moon, Sparkles, Sun } from "lucide-react";
+import { Check, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { parseTheme, THEME_COLOR, THEME_COOKIE, type Theme } from "@/lib/theme";
 import { cn } from "@/components/ui/cn";
 
 const OPTIONS: { value: Theme; label: string; hint: string; I: typeof Moon; swatch: [string, string, string] }[] = [
-  { value: "neon", label: "Dark Neon", hint: "Dark with violet accents", I: Sparkles, swatch: ["#09090f", "#111119", "#8b5cf6"] },
-  { value: "light", label: "Light", hint: "Clean and bright", I: Sun, swatch: ["#f3f4f8", "#ffffff", "#7c3aed"] },
-  { value: "midnight", label: "Midnight", hint: "Calm deep navy", I: Moon, swatch: ["#0a101f", "#111a2e", "#6d7ff2"] },
+  { value: "light", label: "Light", hint: "Clean and bright", I: Sun, swatch: ["#ffffff", "#f1f2f6", "#7b5cff"] },
+  { value: "dark", label: "Dark", hint: "Easy on the eyes at night", I: Moon, swatch: ["#121722", "#1d2432", "#8f76ff"] },
 ];
 
 function useTheme() {
-  const [theme, setTheme] = useState<Theme>("neon");
+  const [theme, setTheme] = useState<Theme>("light");
   useEffect(() => setTheme(parseTheme(document.documentElement.dataset.theme)), []);
   const choose = (next: Theme) => {
     setTheme(next);
@@ -25,7 +24,7 @@ function useTheme() {
   return [theme, choose] as const;
 }
 
-/** Compact three-way toggle (sidebar, profile menu, auth pages). */
+/** Compact two-way toggle (sidebar, profile menu, auth pages). */
 export function ThemeSwitcher({ className }: { className?: string }) {
   const t = useT();
   const [theme, choose] = useTheme();
@@ -54,7 +53,7 @@ export function ThemePicker() {
   const t = useT();
   const [theme, choose] = useTheme();
   return (
-    <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("Theme")}>
+    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t("Theme")}>
       {OPTIONS.map(({ value, label, hint, swatch: [bg, card, accent] }) => {
         const on = theme === value;
         return (

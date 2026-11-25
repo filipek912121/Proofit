@@ -6,24 +6,23 @@ import { cn } from "./cn";
 type Variant = "primary" | "brand" | "secondary" | "ghost" | "danger" | "success" | "gold";
 type Size = "sm" | "md" | "lg" | "icon";
 
+// Game-style button: solid fill, rounded, bold caps and a solid lip that collapses on press.
 const base =
-  "relative inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 select-none disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] whitespace-nowrap";
+  "btn-3d relative inline-flex items-center justify-center gap-2 rounded-2xl font-extrabold uppercase tracking-[0.04em] select-none disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
 const variants: Record<Variant, string> = {
-  // Solid accent: the default call to action.
-  primary: "bg-violet text-white shadow-sm hover:brightness-110",
-  // Gradient + glow: reserved for the single most important action on a screen.
-  brand: "bg-brand text-white glow hover:brightness-110",
-  secondary: "bg-ink-3 text-fg ring-1 ring-line hover:ring-line-strong hover:bg-tint/[0.06]",
-  ghost: "text-muted hover:text-fg hover:bg-tint/5",
-  danger: "bg-extreme/15 text-red-300 ring-1 ring-extreme/30 hover:bg-extreme/25",
-  success: "bg-easy/15 text-green-300 ring-1 ring-easy/30 hover:bg-easy/25",
-  gold: "bg-gradient-to-r from-amber-300 to-yellow-500 text-black shadow-[0_8px_30px_-8px_rgb(251_191_36/0.7)] hover:brightness-105",
+  primary: "bg-violet text-white [--lip:var(--color-violet-dark)]",
+  brand: "bg-violet text-white [--lip:var(--color-violet-dark)]",
+  secondary: "bg-ink-2 text-fg border-2 border-line [--lip:var(--color-line)] hover:bg-ink-3",
+  ghost: "!shadow-none !mb-0 text-violet-2 hover:bg-violet-soft",
+  danger: "bg-red text-white [--lip:var(--color-red-dark)]",
+  success: "bg-green text-white [--lip:var(--color-green-dark)]",
+  gold: "bg-gold text-[#3b2a00] [--lip:var(--color-gold-dark)]",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-[13px]",
-  md: "h-11 px-5 text-sm",
-  lg: "h-13 px-6 text-[15px]",
-  icon: "h-10 w-10",
+  sm: "h-9 px-3.5 text-[12px]",
+  md: "h-12 px-5 text-[14px]",
+  lg: "h-14 px-6 text-[15px]",
+  icon: "h-11 w-11",
 };
 
 export interface ButtonProps extends ComponentProps<"button"> {

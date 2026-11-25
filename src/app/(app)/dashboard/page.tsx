@@ -1,325 +1,270 @@
 import { getT } from "@/lib/i18n/server";
-import { ArrowRight, Camera, ChevronRight, CircleCheck, Compass, Flame, Hourglass, Plus, Swords, Trophy, Users, Zap } from "lucide-react";
+import { Check, ChevronRight, Hourglass } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CategoryIcon } from "@/components/brand/category-icon";
+import { StreakFlame } from "@/components/brand/streak-flame";
 import { ProxiBuddy } from "@/components/proxi/proxi-buddy";
+import { propForCategory } from "@/lib/proxi/props";
 import { InvitesPanel } from "@/components/social/invites-panel";
-import { ReferralCard } from "@/components/social/referral-card";
 import { ActionButton } from "@/components/ui/action-button";
 import { Avatar, avatarOf } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
-import { Card, ListGroup, SectionTitle } from "@/components/ui/card";
+import { SectionTitle } from "@/components/ui/card";
 import { cn } from "@/components/ui/cn";
-import { CountUp } from "@/components/ui/count-up";
-import { ProgressBar, ProgressRing } from "@/components/ui/progress";
+import { ProgressBar } from "@/components/ui/progress";
 import { joinChallengeAction } from "@/lib/actions/challenges";
 import { requireUser } from "@/lib/auth";
-import { XP_RULES } from "@/lib/config/game";
-import { DIFFICULTY_META } from "@/lib/config/taxonomy";
-import { appTimeZone, dayKey, diffDays } from "@/lib/engine/dates";
-import { levelFromXp, levelTitle } from "@/lib/engine/levels";
+import { getStore } from "@/lib/data";
+import { addDays, appTimeZone, dayKey, startOfWeek } from "@/lib/engine/dates";
 import { liveStreak } from "@/lib/engine/xp";
 import { intlLocale } from "@/lib/i18n/core";
-import { stageInfo } from "@/lib/proxi/config";
 import { pickLine } from "@/lib/proxi/messages";
-import { getProxi } from "@/lib/services/proxi";
 import { activeChallenges, dailyChallenge } from "@/lib/services/challenges";
 import { listDuels } from "@/lib/services/duels";
-import { xpEarnedOn } from "@/lib/services/progress";
+import { getProxi } from "@/lib/services/proxi";
 import { friendActivity, leaderboard, pendingInvites } from "@/lib/services/social";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: t("Dashboard") };
+  return { title: t("Today") };
 }
 
-function greeting() {
-  const h = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: appTimeZone() }).format(new Date()));
-  return h < 5 ? "Still up" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+function hourNow() {
+  return Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: appTimeZone() }).format(new Date()));
 }
 
-function timeAgo(iso: string, locale: string) {
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
-  if (mins < 60) return rtf.format(-Math.max(1, mins), "minute");
-  if (mins < 60 * 24) return rtf.format(-Math.round(mins / 60), "hour");
-  return rtf.format(-Math.round(mins / 1440), "day");
-}
-
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+/**
+ * TODAY — the home screen answers four questions in this order:
+ *   1. What do I do today?   (missions, one big PROOF action each)
+ *   2. How am I doing?       (day progress + this week's streak strip)
+ *   3. How are my friends?   (one line about the league, latest proofs)
+ *   4. What do I tap now?    (the first open mission is the primary button)
+ */
+export default async function Today({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const t = await getT();
   const me = await requireUser();
   const today = dayKey();
-  const [active, daily, duels, invites, friendsBoard, activity, earnedToday, proxi] = await Promise.all([
+  const weekStart = startOfWeek(today);
+  const [active, daily, duels, invites, board, activity, proxi, weekProofs] = await Promise.all([
     activeChallenges(me.id),
     dailyChallenge(me.id),
     listDuels(me.id),
     pendingInvites(me.id),
     leaderboard(me.id, "friends", "week"),
-    friendActivity(me.id),
-    xpEarnedOn(me.id, today),
+    friendActivity(me.id, 3),
     getProxi(me.id),
+    getStore().listCompletions({ userId: me.id, sinceDay: weekStart }),
   ]);
   const { welcome } = await searchParams;
   const locale = intlLocale(t.locale);
-  const lv = levelFromXp(me.xp);
   const streak = liveStreak(me, today);
-  const doneToday = active.filter((a) => a.checkedInToday).length;
-  const pending = active.filter((a) => !a.checkedInToday);
-  const next = pending[0];
-  const liveDuels = duels.filter((d) => d.duel.status === "active");
-  const duelInvites = duels.filter((d) => d.duel.status === "pending" && !d.iAmChallenger);
+  const open = active.filter((a) => !a.checkedInToday);
+  const done = active.length - open.length;
+  const allDone = active.length > 0 && open.length === 0;
   const firstName = me.displayName.split(" ")[0];
+  const proofDays = new Set(weekProofs.filter((c) => c.status !== "rejected").map((c) => c.day));
+  const duelInvites = duels.filter((d) => d.duel.status === "pending" && !d.iAmChallenger);
+  const meRow = board.find((r) => r.isMe);
+  const above = meRow && meRow.rank > 1 ? board.find((r) => r.rank === meRow.rank - 1) : undefined;
 
-  // PROXI picks a line for the moment. Breaks are always met with a warm welcome — never guilt.
-  const proxiLine = welcome
-    ? "Welcome to PROOFIT, {name}!"
-    : proxi.mood === "excited"
-      ? pickLine("achievement")
-      : proxi.mood === "sleepy" || proxi.mood === "motivated"
-        ? pickLine("welcomeBack")
-        : active.length && pending.length === 0
-          ? pickLine("allDone")
-          : proxi.reminders && pending.length > 0 && doneToday === 0
-            ? pickLine("reminder")
-            : pickLine("greeting");
-  const proxiMood = welcome ? "excited" : active.length && pending.length === 0 ? "proud" : proxi.mood;
-
-  // Friends board: top 3 + me (if I'm not in the top 3).
-  const meRow = friendsBoard.find((r) => r.isMe);
-  const board = friendsBoard.slice(0, 3);
-  if (meRow && !board.includes(meRow)) board.push(meRow);
+  // State of the day → headline + what PROXI says. Breaks are met with a welcome, never guilt.
+  const state = welcome ? "new" : !active.length ? "empty" : allDone ? "done" : proxi.mood === "sleepy" || proxi.mood === "motivated" ? "back" : "open";
+  const headline = {
+    new: t("Hi {name}! Let's start.", { name: firstName }),
+    empty: t("Pick your first mission"),
+    done: t("That's a wrap for today."),
+    back: t("You're back. Let's go."),
+    open: hourNow() < 12 ? t("Make today count.") : t("One more push today."),
+  }[state];
+  const proxiLine =
+    state === "new"
+      ? "Welcome to PROOFIT, {name}!"
+      : state === "done"
+        ? pickLine("allDone")
+        : state === "back"
+          ? pickLine("welcomeBack")
+          : state === "empty"
+            ? "Pick a mission and I'll cheer you on."
+            : proxi.mood === "excited"
+              ? pickLine("achievement")
+              : pickLine("reminder");
+  const proxiMood = state === "new" ? "excited" : state === "done" ? "proud" : state === "back" ? "happy" : proxi.mood;
 
   return (
-    <div className="space-y-6">
-      {/* Greeting */}
-      <header className="flex items-center gap-3 animate-rise">
-        <Link href="/profile" className="tap shrink-0 rounded-full" aria-label={t("Profile")}>
-          <Avatar {...avatarOf(me)} size={46} />
-        </Link>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] text-subtle">
-            {t(greeting())}, {firstName}
-          </p>
-          <p className="truncate font-display text-lg font-bold leading-tight">
-            {t("Level {n}", { n: lv.level })} · {t(levelTitle(lv.level))}
-          </p>
-        </div>
-        <Link
-          href="/profile"
-          className={cn("tap inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold ring-1", streak ? "bg-hard/12 text-orange-300 ring-hard/30" : "bg-tint/5 text-subtle ring-line")}
-          aria-label={t("day streak · best {n}", { n: me.longestStreak })}
-        >
-          <Flame className={cn("h-4 w-4", streak > 0 && "animate-flame")} aria-hidden />
-          <CountUp value={streak} />
-        </Link>
+    <div className="space-y-8">
+      {/* 1 · Headline + PROXI */}
+      <header className="space-y-4 animate-rise">
+        <h1 className="font-display text-[28px] font-black leading-tight">{headline}</h1>
+        <ProxiBuddy stage={proxi.stage} look={proxi.look} mood={proxiMood} line={proxiLine} params={{ name: firstName }} size={88} prop={state === "done" ? "trophy" : propForCategory(open[0]?.challenge.category)} />
       </header>
 
-      {/* Today — the hero */}
-      <Card glow className="p-5 animate-rise [animation-delay:60ms]">
-        <div className="flex items-center gap-4">
-          <ProgressRing value={active.length ? doneToday / active.length : 0} size={84} stroke={9} color={pending.length === 0 && active.length ? "var(--color-easy)" : undefined} label={t("{done}/{total} done", { done: doneToday, total: active.length })}>
-            <div className="font-display text-xl font-bold leading-none tabular-nums">
-              {doneToday}
-              <span className="text-sm text-subtle">/{active.length}</span>
-            </div>
-          </ProgressRing>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-subtle">{t("Today")}</p>
-            <h1 className="font-display text-xl font-bold leading-snug">
-              {!active.length
-                ? t("No active challenges")
-                : pending.length
-                  ? t.p(pending.length, "{n} check-in left", "{n} check-ins left")
-                  : t("All done today.")}
-            </h1>
-            <p className="mt-1 flex items-center gap-1 text-[13px] text-muted">
-              <Zap className="h-3.5 w-3.5 text-gold" aria-hidden />
-              {t("{n}/{cap} XP today", { n: earnedToday, cap: XP_RULES.dailyXpCap })}
-            </p>
-          </div>
-        </div>
-        {next ? (
-          <LinkButton href={`/challenges/${next.challenge.id}#checkin`} variant="brand" size="lg" className="mt-5 w-full justify-between">
-            <span className="min-w-0 truncate text-left">
-              <span className="block text-[11px] font-medium uppercase tracking-wider opacity-80">{t("Next up")}</span>
-              <span className="block truncate">{t(next.challenge.title)}</span>
+      {/* 2 · Today's missions */}
+      {active.length > 0 ? (
+        <section aria-label={t("Today's missions")} className="animate-rise [animation-delay:60ms]">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-[19px] font-extrabold">{t("Today's missions")}</h2>
+            <span className={cn("text-sm font-black tabular-nums", allDone ? "text-green-dark" : "text-subtle")}>
+              {done}/{active.length}
             </span>
-            <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
-          </LinkButton>
-        ) : !active.length ? (
-          <LinkButton href="/explore" variant="brand" size="lg" className="mt-5 w-full" icon={<Compass className="h-5 w-5" />}>
-            {t("Find a challenge")}
-          </LinkButton>
-        ) : null}
-      </Card>
-
-      {/* PROXI companion */}
-      <section className="surface relative overflow-hidden rounded-2xl p-4 animate-rise [animation-delay:120ms]" aria-label="PROXI">
-        <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full blur-3xl" style={{ background: stageInfo(proxi.stage).color, opacity: 0.18 }} aria-hidden />
-        <ProxiBuddy
-          stage={proxi.stage}
-          look={proxi.look}
-          mood={proxiMood}
-          line={proxiLine}
-          params={{ name: firstName }}
-          size={92}
-          className="relative"
-          extra={
-            <Link href="/proxi" className="inline-flex items-center gap-2 text-xs font-semibold text-violet-2">
-              <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-black" style={{ background: stageInfo(proxi.stage).color }}>
-                {stageInfo(proxi.stage).name}
-              </span>
-              {t("Your PROXI")} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-            </Link>
-          }
-        />
-      </section>
-
-      {/* Today's challenges */}
-      {active.length > 0 && (
-        <section aria-label={t("Active challenges")} className="animate-rise [animation-delay:120ms]">
-          <SectionTitle title={t("Active challenges")} action={<Link href="/explore">{t("Find more")}</Link>} />
-          <ListGroup>
-            {active.map((a) => {
-              const m = DIFFICULTY_META[a.challenge.difficulty];
-              const done = a.todayStatus === "approved";
+          </div>
+          <ProgressBar value={done / active.length} tone={allDone ? "easy" : "brand"} className="mb-4 h-4" label={t("Today's progress")} />
+          <ul className="space-y-3">
+            {active.map((a, i) => {
+              const c = a.challenge;
+              const pending = a.todayStatus === "pending";
+              const primary = !a.checkedInToday && a === open[0];
               return (
-                <Link key={a.participation.id} href={`/challenges/${a.challenge.id}${a.checkedInToday ? "" : "#checkin"}`} className="tap flex items-center gap-3 px-4 py-3.5 hover:bg-tint/[0.03]">
-                  <span
-                    className={cn(
-                      "grid h-9 w-9 shrink-0 place-items-center rounded-full",
-                      done ? "bg-easy text-white" : a.todayStatus === "pending" ? "bg-electric/15 text-blue-300" : "ring-2 ring-line-strong",
-                    )}
-                    aria-hidden
-                  >
-                    {done ? <CircleCheck className="h-5 w-5 animate-check" /> : a.todayStatus === "pending" ? <Hourglass className="h-4 w-4" /> : a.challenge.requiresProof ? <Camera className="h-4 w-4 text-subtle" /> : null}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className={cn("block truncate text-[15px] font-semibold", done && "text-muted")}>{t(a.challenge.title)}</span>
-                    <span className="mt-1 flex items-center gap-2">
-                      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", m.dot)} aria-hidden />
-                      <ProgressBar value={a.participation.checkins / a.challenge.durationDays} tone={a.challenge.difficulty} className="h-1 max-w-32" label={t(a.challenge.title)} />
-                      <span className="shrink-0 text-xs tabular-nums text-subtle">
-                        {a.participation.checkins}/{a.challenge.durationDays}
+                <li key={c.id} className="animate-rise" style={{ animationDelay: `${80 + i * 50}ms` }}>
+                  <div className={cn("flex items-center gap-3 rounded-2xl border-2 p-3", a.checkedInToday ? "border-line bg-ink-3/60" : "border-line")}>
+                    <Link href={`/challenges/${c.id}`} className="tap shrink-0" aria-label={t(c.title)}>
+                      <CategoryIcon category={c.category} size={52} />
+                    </Link>
+                    <Link href={`/challenges/${c.id}`} className="min-w-0 flex-1">
+                      <span className={cn("block truncate font-extrabold", a.checkedInToday && "text-muted")}>{t(c.title)}</span>
+                      <span className="mt-0.5 block text-xs font-bold text-subtle">
+                        {c.durationDays > 1 ? t("Day {n} of {total}", { n: a.dayNumber, total: c.durationDays }) : t("Today only")}
+                        {" · +"}
+                        {c.xpReward} XP
                       </span>
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold">
-                    {done ? (
-                      <span className="text-green-300">+{a.challenge.xpReward} XP</span>
-                    ) : a.todayStatus === "pending" ? (
-                      <span className="text-blue-300">{t("Pending")}</span>
+                      {c.durationDays > 1 && c.durationDays <= 14 && (
+                        <span className="mt-1.5 flex gap-1" aria-hidden>
+                          {Array.from({ length: c.durationDays }, (_, d) => {
+                            const n = d + 1;
+                            const isDone = n < a.dayNumber ? true : n === a.dayNumber && a.checkedInToday;
+                            return <span key={d} className={cn("h-1.5 flex-1 rounded-full", isDone ? "bg-green" : n === a.dayNumber ? "bg-violet/40" : "bg-ink-3")} />;
+                          })}
+                        </span>
+                      )}
+                    </Link>
+                    {a.checkedInToday ? (
+                      pending ? (
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold/20 text-gold-dark" title={t("Proof awaiting review")}>
+                          <Hourglass className="h-5 w-5" aria-label={t("Proof awaiting review")} />
+                        </span>
+                      ) : (
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green text-white animate-check" title={t("Done today")}>
+                          <Check className="h-6 w-6" strokeWidth={3.5} aria-label={t("Done today")} />
+                        </span>
+                      )
                     ) : (
-                      <span className="rounded-full bg-violet px-3 py-1.5 text-white">{t("Check in")}</span>
+                      <LinkButton href={`/challenges/${c.id}#checkin`} size="sm" variant={primary ? "success" : "secondary"} className="shrink-0">
+                        {t("Proof it")}
+                      </LinkButton>
                     )}
-                  </span>
-                </Link>
+                  </div>
+                </li>
               );
             })}
-          </ListGroup>
+          </ul>
+          {allDone && <p className="mt-4 text-center text-sm font-bold text-muted">{t("Done is better than promised. See you tomorrow.")}</p>}
+        </section>
+      ) : (
+        <section className="rounded-3xl border-2 border-dashed border-line-strong p-5 text-center animate-rise" aria-label={t("Start a mission")}>
+          <p className="font-extrabold">{t("No missions yet")}</p>
+          <p className="mt-1 text-sm text-muted">{t("Start with something small. A 1-day mission takes a few minutes.")}</p>
+          <LinkButton href="/explore" className="mt-4">
+            {t("Find a mission")}
+          </LinkButton>
         </section>
       )}
 
-      {/* Level progress */}
-      <Link href="/achievements" className="tap surface block rounded-2xl px-4 py-3.5 animate-rise [animation-delay:160ms]">
-        <div className="mb-2 flex items-baseline justify-between gap-3">
-          <span className="text-sm font-semibold">{t("Level {n}", { n: lv.level })}</span>
-          <span className="text-xs text-subtle">
-            <CountUp value={me.xp} locale={locale} /> XP · {t("{xp} XP to level {n}", { xp: lv.xpToNext, n: lv.level + 1 })}
-          </span>
+      {/* 3 · This week: streak strip */}
+      <section aria-label={t("This week")} className="animate-rise [animation-delay:120ms]">
+        <div className="mb-3 flex items-center gap-2">
+          <StreakFlame size={26} lit={streak > 0} />
+          <h2 className="font-display text-[19px] font-extrabold">
+            {streak > 0 ? t.p(streak, "{n}-day streak", "{n}-day streak") : t("Start a streak today")}
+          </h2>
         </div>
-        <ProgressBar value={lv.progress} className="h-2" label={t("Level progress")} />
-      </Link>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Friends ranking */}
-        <section aria-label={t("Friends")}>
-          <SectionTitle title={t("Friends this week")} action={<Link href="/leaderboard?scope=friends">{t("Rankings")}</Link>} />
-          {board.length > 1 ? (
-            <ListGroup>
-              {board.map((r) => (
-                <Link key={r.profile.id} href={r.isMe ? "/profile" : `/u/${r.profile.username}`} className={cn("tap flex items-center gap-3 px-4 py-2.5", r.isMe && "bg-violet/[0.08]")}>
-                  <span className={cn("w-5 text-center font-display text-sm font-bold tabular-nums", r.rank === 1 ? "text-gold" : "text-subtle")}>{r.rank}</span>
-                  <Avatar {...avatarOf(r.profile)} size={32} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{r.isMe ? t("You") : r.profile.displayName}</span>
-                  <span className="font-display text-sm font-bold tabular-nums">{r.xp} XP</span>
-                </Link>
-              ))}
-            </ListGroup>
-          ) : (
-            <Link href="/leaderboard" className="tap surface flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm text-muted">
-              <Users className="h-5 w-5 text-violet-2" aria-hidden />
-              <span className="flex-1">{t("Follow people from the global leaderboard and they'll show up here.")}</span>
-              <ChevronRight className="h-4 w-4" aria-hidden />
-            </Link>
-          )}
-        </section>
-
-        {/* Shortcuts */}
-        <section aria-label={t("Quick actions")}>
-          <SectionTitle title={t("Compete")} />
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { href: "/create", label: t("Create"), I: Plus, badge: null, tone: "text-violet-2 bg-violet/10" },
-              { href: "/duels", label: t("Duels"), I: Swords, badge: liveDuels.length ? t("{n} live", { n: liveDuels.length }) : null, tone: "text-red-300 bg-extreme/10" },
-              { href: "/squads", label: t("Squads"), I: Users, badge: null, tone: "text-blue-300 bg-electric/10" },
-              { href: "/explore", label: t("Explore"), I: Compass, badge: null, tone: "text-green-300 bg-easy/10" },
-            ].map(({ href, label, I, badge, tone }) => (
-              <Link key={href} href={href} className="tap surface relative flex min-w-0 flex-col items-center gap-2 rounded-2xl px-1 py-3.5 text-[12px] font-semibold">
-                <span className={cn("grid h-10 w-10 place-items-center rounded-xl", tone)}>
-                  <I className="h-5 w-5" aria-hidden />
-                </span>
-                {label}
-                {badge && <span className="absolute right-2 top-2 rounded-full bg-extreme px-1.5 py-0.5 text-[10px] font-bold text-white">{badge}</span>}
-              </Link>
-            ))}
-          </div>
-          {daily && (
-            <div className="surface mt-3 flex items-center gap-3 rounded-2xl px-4 py-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/12 text-gold">
-                <Trophy className="h-[18px] w-[18px]" aria-hidden />
-              </span>
-              <Link href={`/challenges/${daily.id}`} className="min-w-0 flex-1">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-subtle">{t("Daily challenge")}</span>
-                <span className="block truncate text-sm font-semibold">{t(daily.title)}</span>
-              </Link>
-              {daily.joined ? (
-                <LinkButton href={`/challenges/${daily.id}#checkin`} size="sm" variant="secondary">
-                  {t("Check in")}
-                </LinkButton>
-              ) : (
-                <ActionButton size="sm" variant="secondary" action={joinChallengeAction.bind(null, daily.id)} successTitle={t("Joined today's challenge!")}>
-                  +{daily.xpReward} XP
-                </ActionButton>
-              )}
-            </div>
-          )}
-        </section>
-      </div>
+        <WeekStrip weekStart={weekStart} today={today} proofDays={proofDays} locale={locale} />
+      </section>
 
       <InvitesPanel invites={invites} duels={duelInvites} />
 
-      {/* Friend activity */}
-      {activity.length > 0 && (
-        <section aria-label={t("Friend activity")}>
-          <SectionTitle title={t("Friend activity")} />
-          <ListGroup>
-            {activity.map((a) => (
-              <Link key={a.id} href={`/u/${a.profile.username}`} className="tap flex items-center gap-3 px-4 py-3">
-                <Avatar {...avatarOf(a.profile)} size={34} />
-                <span className="min-w-0 flex-1 text-sm">
-                  <span className="font-semibold">{a.profile.displayName.split(" ")[0]}</span> <span className="text-muted">{t("checked in to")}</span>{" "}
-                  <span className="font-medium">{t(a.challenge.title)}</span>
+      {/* 4 · Friends pulse */}
+      {(meRow && board.length > 1) || activity.length > 0 ? (
+        <section aria-label={t("Friends")}>
+          <SectionTitle title={t("Your crew")} action={<Link href="/friends">{t("Friends")}</Link>} />
+          <div className="divide-y-2 divide-line rounded-2xl border-2 border-line">
+            {meRow && board.length > 1 && (
+              <Link href="/leaderboard" className="flex items-center gap-3 px-4 py-3 hover:bg-ink-3">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-gold font-black text-[#3b2a00]">#{meRow.rank}</span>
+                <span className="min-w-0 flex-1 text-sm font-bold">
+                  {above
+                    ? t("{xp} XP to pass {name} this week", { xp: above.xp - meRow.xp + 1, name: above.profile.displayName.split(" ")[0] })
+                    : t("You lead your friends this week")}
                 </span>
-                <span className="shrink-0 text-xs text-subtle">{timeAgo(a.at, locale)}</span>
+                <ChevronRight className="h-4 w-4 text-subtle" aria-hidden />
+              </Link>
+            )}
+            {activity.map((a) => (
+              <Link key={a.id} href={`/challenges/${a.challenge.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-ink-3">
+                <Avatar {...avatarOf(a.profile)} size={36} />
+                <span className="min-w-0 flex-1 text-sm">
+                  <span className="font-extrabold">{a.profile.displayName.split(" ")[0]}</span> <span className="text-muted">{t("showed proof for")}</span>{" "}
+                  <span className="font-bold">{t(a.challenge.title)}</span>
+                </span>
               </Link>
             ))}
-          </ListGroup>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Today's quick mission — only when it adds something */}
+      {daily && !daily.joined && active.length < 3 && (
+        <section aria-label={t("Daily challenge")}>
+          <SectionTitle title={t("Quick mission")} />
+          <div className="flex items-center gap-3 rounded-2xl border-2 border-line p-3">
+            <CategoryIcon category={daily.category} size={48} />
+            <Link href={`/challenges/${daily.id}`} className="min-w-0 flex-1">
+              <span className="block truncate font-extrabold">{t(daily.title)}</span>
+              <span className="text-xs font-bold text-subtle">{t("Today only")} · +{daily.xpReward} XP</span>
+            </Link>
+            <ActionButton size="sm" variant="secondary" action={joinChallengeAction.bind(null, daily.id)} successTitle={t("Challenge accepted!")}>
+              {t("Start")}
+            </ActionButton>
+          </div>
         </section>
       )}
+    </div>
+  );
+}
 
-      <ReferralCard userId={me.id} username={me.username} compact />
+/** Mon–Sun strip: days with a proof are joined into one flame-orange band. */
+function WeekStrip({ weekStart, today, proofDays, locale }: { weekStart: string; today: string; proofDays: Set<string>; locale: string }) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" });
+  return (
+    <div className="rounded-2xl border-2 border-line p-3">
+      <div className="grid grid-cols-7 text-center text-[11px] font-extrabold uppercase text-subtle">
+        {days.map((d) => (
+          <span key={d}>{fmt.format(new Date(`${d}T12:00:00Z`)).replace(".", "").slice(0, 2)}</span>
+        ))}
+      </div>
+      <div className="mt-2 grid grid-cols-7">
+        {days.map((d, i) => {
+          const lit = proofDays.has(d);
+          const prev = i > 0 && proofDays.has(days[i - 1]);
+          const next = i < 6 && proofDays.has(days[i + 1]);
+          const isToday = d === today;
+          return (
+            <span
+              key={d}
+              className={cn(
+                "grid h-10 place-items-center text-sm font-black tabular-nums",
+                lit && "bg-flame text-white",
+                lit && !prev && "rounded-l-full",
+                lit && !next && "rounded-r-full",
+                !lit && d > today && "text-subtle/60",
+                !lit && d <= today && "text-muted",
+              )}
+            >
+              <span className={cn("grid h-8 w-8 place-items-center rounded-full", isToday && !lit && "ring-2 ring-flame text-flame")}>{Number(d.slice(8))}</span>
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

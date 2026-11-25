@@ -12,7 +12,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Link href="/" className="mb-8 flex justify-center" aria-label={t("PROOFIT home")}>
           <Logo size={36} />
         </Link>
-        <div className="glass-strong neon-border rounded-3xl p-6 shadow-2xl sm:p-8">{children}</div>
+        <div className="surface rounded-3xl p-6 sm:p-8">{children}</div>
         <div className="mt-6 flex justify-center gap-2">
           <LanguageSwitcher />
           <ThemeSwitcher />

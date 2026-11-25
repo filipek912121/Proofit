@@ -1,6 +1,8 @@
 import { getT } from "@/lib/i18n/server";
 import { ArrowDown, ArrowUp, Crown, Minus, Swords, Trophy, UserCheck, UserPlus, Users } from "lucide-react";
 import type { Metadata } from "next";
+import { dayKey, startOfWeek } from "@/lib/engine/dates";
+import { NavIcon } from "@/components/brand/nav-icons";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
 import { Avatar, avatarOf } from "@/components/ui/avatar";
@@ -41,9 +43,12 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const t = await getT();
   const me = await requireUser();
   const sp = await searchParams;
-  const scope: LeaderboardScope = sp.scope === "friends" ? "friends" : "global";
+  // Friends first: a fair, personal league. Global stays one tap away.
+  const scope: LeaderboardScope = sp.scope === "global" ? "global" : "friends";
   const period: LeaderboardPeriod = sp.period === "month" || sp.period === "all" ? sp.period : "week";
   const rows = await leaderboard(me.id, scope, period);
+  const today = dayKey();
+  const weekDaysLeft = Math.max(1, 7 - Math.round((Date.parse(today) - Date.parse(startOfWeek(today))) / 86_400_000));
   const href = (s: LeaderboardScope, p: LeaderboardPeriod) => `/leaderboard?scope=${s}&period=${p}`;
   const leaderXp = Math.max(1, rows[0]?.xp ?? 1);
   const podium = rows.length >= 3 ? rows.slice(0, 3) : [];
@@ -94,9 +99,11 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <header className="mb-5 animate-rise">
-        <h1 className="font-display text-[26px] font-bold tracking-tight sm:text-4xl">{t("Leaderboard")}</h1>
-        <p className="mt-1 text-[14px] text-muted">{t("XP earned from verified check-ins, streaks, completions and wins.")}</p>
+      <header className="mb-6 flex flex-col items-center text-center animate-rise">
+        <NavIcon name="trophy" size={64} />
+        <h1 className="mt-2 font-display text-[28px] font-black leading-tight">{scope === "friends" ? t("Friends league") : t("Global league")}</h1>
+        <p className="mt-1 text-[14px] font-semibold text-muted">{t("XP earned from verified check-ins, streaks, completions and wins.")}</p>
+        {period === "week" && <p className="mt-1 text-sm font-black text-red">{t.p(weekDaysLeft, "Resets in {n} day", "Resets in {n} days")}</p>}
       </header>
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Segmented
@@ -104,8 +111,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           active={scope}
           className="w-full sm:w-auto"
           items={[
-            { key: "global", label: t("Global"), href: href("global", period) },
             { key: "friends", label: t("Friends"), href: href("friends", period) },
+            { key: "global", label: t("Global"), href: href("global", period) },
           ]}
         />
         <Segmented

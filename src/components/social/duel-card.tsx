@@ -45,7 +45,7 @@ export async function DuelCard({ v }: { v: DuelView }) {
       </Link>
       {(d.status === "active" || d.status === "completed") && (
         <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-tint/5" aria-hidden>
-          <div className="bg-gradient-to-r from-violet to-electric transition-all" style={{ width: `${(v.myScore / total) * 100}%` }} />
+          <div className="bg-violet transition-all" style={{ width: `${(v.myScore / total) * 100}%` }} />
           <div className="flex-1 bg-extreme/50" />
         </div>
       )}

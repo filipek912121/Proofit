@@ -4,7 +4,7 @@ import { Award, Sparkles, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n/client";
 import { PROXI_ITEMS, stageInfo, type ProxiLook, type ProxiStage } from "@/lib/proxi/config";
-import { pickLine } from "@/lib/proxi/messages";
+import { LINES, pickLine } from "@/lib/proxi/messages";
 import { Button } from "@/components/ui/button";
 import { Confetti } from "@/components/ui/confetti";
 import { ProxiAvatar } from "./proxi-avatar";
@@ -20,9 +20,10 @@ export interface Celebration {
 export function ProxiCelebration({ data, stage, look, onClose }: { data: Celebration; stage: ProxiStage; look: ProxiLook; onClose?: () => void }) {
   const t = useT();
   const [open, setOpen] = useState(true);
-  const [line] = useState(() =>
-    pickLine(data.evolvedTo ? "evolve" : data.levelUp ? "levelUp" : data.achievements.length ? "achievement" : "unlock"),
-  );
+  // Deterministic first render (server and client must match), then a random line.
+  const cat = data.evolvedTo ? "evolve" : data.levelUp ? "levelUp" : data.achievements.length ? "achievement" : "unlock";
+  const [line, setLine] = useState(() => LINES[cat][0]);
+  useEffect(() => setLine(pickLine(cat)), [cat]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     document.addEventListener("keydown", onKey);
@@ -43,11 +44,11 @@ export function ProxiCelebration({ data, stage, look, onClose }: { data: Celebra
         : t("New PROXI look unlocked!");
   return (
     <div className="fixed inset-0 z-[95] grid place-items-center p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <button className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade" onClick={close} aria-label={t("Close")} />
+      <button className="absolute inset-0 bg-black/50 animate-fade" onClick={close} aria-label={t("Close")} />
       <div className="surface raised relative w-full max-w-sm overflow-hidden rounded-3xl p-6 text-center animate-levelup">
         <Confetti count={36} />
         <div className="relative mx-auto mb-2 grid place-items-center">
-          <span className="absolute h-40 w-40 rounded-full blur-3xl" style={{ background: stageInfo(stage).color, opacity: 0.35 }} aria-hidden />
+          <span className="absolute h-44 w-44 rounded-full" style={{ background: stageInfo(stage).color, opacity: 0.18 }} aria-hidden />
           <ProxiAvatar stage={stage} look={look} mood={data.evolvedTo || data.levelUp ? "proud" : "excited"} size={150} />
         </div>
         {data.evolvedTo && (

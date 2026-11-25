@@ -1,5 +1,8 @@
 "use client";
 
+import type { ProxiProp } from "@/lib/proxi/props";
+export type { ProxiProp };
+
 import { useId } from "react";
 import { cn } from "@/components/ui/cn";
 import { BODY_COLORS, DEFAULT_LOOK, EYE_COLORS, type ProxiLook, type ProxiStage } from "@/lib/proxi/config";
@@ -146,6 +149,7 @@ export function ProxiAvatar({
   className,
   animate = true,
   silhouette = false,
+  prop,
 }: {
   stage?: ProxiStage;
   look?: ProxiLook;
@@ -155,6 +159,8 @@ export function ProxiAvatar({
   animate?: boolean;
   /** Locked-preview mode: dark silhouette, no effects. */
   silhouette?: boolean;
+  /** Contextual gear for the moment: headphones for music, dumbbell for training… */
+  prop?: ProxiProp;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const c = BODY_COLORS[look.color] ?? BODY_COLORS["color-classic"];
@@ -400,8 +406,80 @@ export function ProxiAvatar({
             </text>
           </g>
         )}
+        {prop && !silhouette && <Prop kind={prop} />}
       </g>
       </g>
     </svg>
   );
+}
+
+/** Flat, chunky props drawn in the same language as PROXI (200×230 grid). */
+function Prop({ kind }: { kind: ProxiProp }) {
+  switch (kind) {
+    case "headphones":
+      return (
+        <g>
+          <path d="M50 92 C50 34 150 34 150 92" stroke="#1d2130" strokeWidth="9" fill="none" strokeLinecap="round" />
+          <rect x="38" y="76" width="20" height="34" rx="9" fill="#ff4f5e" />
+          <rect x="142" y="76" width="20" height="34" rx="9" fill="#ff4f5e" />
+          <rect x="42" y="82" width="8" height="22" rx="4" fill="#d93241" />
+          <rect x="150" y="82" width="8" height="22" rx="4" fill="#d93241" />
+        </g>
+      );
+    case "dumbbell":
+      return (
+        <g transform="translate(150 168) rotate(-20)">
+          <rect x="-22" y="-4" width="44" height="8" rx="3" fill="#475472" />
+          <rect x="-30" y="-14" width="10" height="28" rx="4" fill="#ff8a1f" />
+          <rect x="20" y="-14" width="10" height="28" rx="4" fill="#ff8a1f" />
+          <rect x="-36" y="-9" width="6" height="18" rx="3" fill="#e06a00" />
+          <rect x="30" y="-9" width="6" height="18" rx="3" fill="#e06a00" />
+        </g>
+      );
+    case "book":
+      return (
+        <g transform="translate(150 170) rotate(-12)">
+          <path d="M-26 -16 c10 -4 18 -2 26 4 v32 c-8 -6 -16 -8 -26 -4 Z" fill="#1e9bf0" />
+          <path d="M26 -16 c-10 -4 -18 -2 -26 4 v32 c8 -6 16 -8 26 -4 Z" fill="#0b7bc8" />
+          <path d="M-20 -8 h12 M-20 0 h12 M8 -8 h12 M8 0 h12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+        </g>
+      );
+    case "bottle":
+      return (
+        <g transform="translate(156 164) rotate(10)">
+          <rect x="-6" y="-34" width="12" height="8" rx="2" fill="#1d2130" />
+          <rect x="-14" y="-27" width="28" height="56" rx="10" fill="#11b5c9" />
+          <rect x="-14" y="-4" width="28" height="33" rx="10" fill="#0a91a3" />
+          <rect x="-8" y="-20" width="5" height="16" rx="2.5" fill="#fff" opacity="0.6" />
+        </g>
+      );
+    case "trophy":
+      return (
+        <g transform="translate(154 166)">
+          <path d="M-18 -26 h36 v14 a18 18 0 0 1 -36 0 Z" fill="#ffb81c" />
+          <path d="M-18 -20 h-8 a9 9 0 0 0 9 12 M18 -20 h8 a9 9 0 0 1 -9 12" stroke="#e09400" strokeWidth="4" fill="none" />
+          <rect x="-5" y="4" width="10" height="10" fill="#e09400" />
+          <rect x="-16" y="13" width="32" height="10" rx="3" fill="#475472" />
+        </g>
+      );
+    case "pencil":
+      return (
+        <g transform="translate(152 166) rotate(35)">
+          <rect x="-7" y="-30" width="14" height="46" rx="3" fill="#ff5fae" />
+          <rect x="-7" y="-36" width="14" height="8" rx="3" fill="#ffd0e6" />
+          <path d="M-7 16 L0 32 L7 16 Z" fill="#ffd28a" />
+          <path d="M-2.5 26 L0 32 L2.5 26 Z" fill="#1d2130" />
+        </g>
+      );
+    case "pajamas":
+      // A sleepy cap for early-morning missions.
+      return (
+        <g>
+          <path d="M58 64 C70 22 128 18 148 58 Z" fill="#7b5cff" />
+          <path d="M140 46 C160 50 170 70 172 86" stroke="#7b5cff" strokeWidth="10" strokeLinecap="round" fill="none" />
+          <circle cx="173" cy="92" r="9" fill="#fff" />
+          <rect x="54" y="58" width="98" height="12" rx="6" fill="#fff" />
+        </g>
+      );
+  }
 }

@@ -116,7 +116,18 @@ export async function friendActivity(userId: string, limit = 6): Promise<Activit
   if (!following.length) return [];
   const since = addDays(dayKey(), -2);
   const lists = await Promise.all(following.slice(0, 30).map((id) => store.listCompletions({ userId: id, sinceDay: since, status: "approved" })));
-  const items = lists.flat().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
+  // One line per person+challenge: the latest proof is the news, not every repeat.
+  const seen = new Set<string>();
+  const items = lists
+    .flat()
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .filter((c) => {
+      const k = `${c.userId}:${c.challengeId}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, limit);
   const [profiles, chs] = await Promise.all([
     store.listProfiles([...new Set(items.map((i) => i.userId))]),
     store.listChallenges({ ids: [...new Set(items.map((i) => i.challengeId))] }),

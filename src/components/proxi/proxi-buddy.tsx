@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n/client";
 import type { ProxiLook, ProxiStage } from "@/lib/proxi/config";
 import { pickLine, type ProxiMood } from "@/lib/proxi/messages";
 import { cn } from "@/components/ui/cn";
-import { ProxiAvatar } from "./proxi-avatar";
+import { ProxiAvatar, type ProxiProp } from "./proxi-avatar";
 
 /**
  * PROXI with a speech bubble. Tapping PROXI makes it react (laugh/surprise)
@@ -21,6 +21,7 @@ export function ProxiBuddy({
   layout = "row",
   extra,
   className,
+  prop,
 }: {
   stage: ProxiStage;
   look: ProxiLook;
@@ -32,6 +33,7 @@ export function ProxiBuddy({
   layout?: "row" | "stack";
   extra?: React.ReactNode;
   className?: string;
+  prop?: ProxiProp;
 }) {
   const t = useT();
   const [poke, setPoke] = useState<{ mood: ProxiMood; line: string } | null>(null);
@@ -46,18 +48,18 @@ export function ProxiBuddy({
   return (
     <div className={cn(layout === "row" ? "flex items-center gap-3" : "flex flex-col items-center gap-3 text-center", className)}>
       <button type="button" onClick={onTap} className="tap shrink-0 rounded-3xl focus-visible:outline-offset-4" aria-label={t("Poke PROXI")}>
-        <ProxiAvatar stage={stage} look={look} mood={poke?.mood ?? mood} size={size} />
+        <ProxiAvatar stage={stage} look={look} mood={poke?.mood ?? mood} size={size} prop={prop} />
       </button>
       <div
         key={shown}
         className={cn(
-          "relative min-w-0 rounded-2xl bg-ink-3 px-4 py-3 ring-1 ring-line animate-pop",
+          "relative min-w-0 rounded-2xl border-2 border-line bg-ink-2 px-4 py-3 animate-pop",
           layout === "row" ? "flex-1 rounded-bl-md" : "max-w-sm rounded-t-md",
         )}
         role="status"
         aria-live="polite"
       >
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-violet-2">PROXI</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-violet-2">PROXI</p>
         <p className="mt-0.5 text-[15px] font-semibold leading-snug">{shown}</p>
         {extra && <div className="mt-2">{extra}</div>}
       </div>

@@ -36,7 +36,6 @@ export default async function DuelPage({ params }: { params: Promise<{ id: strin
         <ArrowLeft className="h-4 w-4" aria-hidden />{" "}{t("All duels")}
       </Link>
       <Card glow className="relative overflow-hidden p-6 text-center sm:p-8">
-        <span className="absolute left-1/2 top-0 h-40 w-80 -translate-x-1/2 rounded-full bg-extreme/20 blur-3xl" aria-hidden />
         <p className="relative text-xs font-semibold uppercase tracking-[0.25em] text-red-300">{t("{n}-day duel", { n: d.durationDays })}</p>
         <h1 className="relative mt-2 font-display text-2xl font-bold">{v.challenge ? t(v.challenge.title) : ""}</h1>
         <div className="relative mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">

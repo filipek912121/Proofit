@@ -1,12 +1,14 @@
-export type Theme = "neon" | "light" | "midnight";
-export const THEMES: Theme[] = ["neon", "light", "midnight"];
+export type Theme = "light" | "dark";
+export const THEMES: Theme[] = ["light", "dark"];
 export const THEME_COOKIE = "proofit_theme";
-export const DEFAULT_THEME: Theme = "neon";
+export const DEFAULT_THEME: Theme = "light";
 
-/** Normalises any stored value (including legacy "dark"/"system") to a supported theme. */
+/** Normalises any stored value (including legacy "neon"/"midnight") to a supported theme. */
 export function parseTheme(v: string | undefined | null): Theme {
-  return v === "light" || v === "midnight" || v === "neon" ? v : DEFAULT_THEME;
+  if (v === "light") return "light";
+  if (v === "dark" || v === "neon" || v === "midnight") return "dark";
+  return DEFAULT_THEME;
 }
 
 /** Browser chrome colour (status bar) per theme. */
-export const THEME_COLOR: Record<Theme, string> = { neon: "#09090f", light: "#f3f4f8", midnight: "#0a101f" };
+export const THEME_COLOR: Record<Theme, string> = { light: "#ffffff", dark: "#121722" };

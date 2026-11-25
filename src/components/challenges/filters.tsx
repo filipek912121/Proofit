@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/lib/i18n/client";
+import { CategoryIcon } from "@/components/brand/category-icon";
 
 import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -38,8 +39,8 @@ export function ChallengeFilters() {
   const sort = params.get("sort") ?? "popular";
   const chip = (active: boolean) =>
     cn(
-      "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold ring-1 transition",
-      active ? "bg-tint/10 text-fg ring-line-strong" : "text-muted ring-line hover:text-fg hover:ring-line-strong",
+      "inline-flex shrink-0 items-center gap-1.5 rounded-2xl border-2 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wide transition-colors",
+      active ? "border-violet bg-violet-soft text-violet-2" : "border-line text-muted hover:bg-ink-3",
     );
 
   return (
@@ -63,7 +64,7 @@ export function ChallengeFilters() {
         <label htmlFor="sort" className="sr-only">
           {t("Sort")}
         </label>
-        <select id="sort" value={sort} onChange={(e) => set("sort", e.target.value === "popular" ? null : e.target.value)} className="w-32 shrink-0 rounded-xl bg-tint/[0.04] px-3 py-3 text-sm text-fg ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-violet/60 sm:w-40">
+        <select id="sort" value={sort} onChange={(e) => set("sort", e.target.value === "popular" ? null : e.target.value)} className={cn(inputClass, "w-32 shrink-0 sm:w-40")}>
           <option value="popular">{t("Popular")}</option>
           <option value="new">{t("Newest")}</option>
           <option value="xp">{t("Most XP")}</option>
@@ -81,11 +82,19 @@ export function ChallengeFilters() {
           </button>
         ))}
       </div>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label={t("Filter by category")}>
+      <div className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label={t("Filter by category")}>
         {CATEGORIES.map((c) => (
-          <button key={c} className={chip(category === c)} onClick={() => set("category", category === c ? null : c)} aria-pressed={category === c}>
-            <Icon name={CATEGORY_META[c].icon} className="h-3.5 w-3.5" />
-            {t(CATEGORY_META[c].label)}
+          <button
+            key={c}
+            className={cn(
+              "flex w-[78px] shrink-0 flex-col items-center gap-1 rounded-2xl border-2 px-1 py-2 text-[11px] font-extrabold transition-colors",
+              category === c ? "border-violet bg-violet-soft text-violet-2" : "border-transparent text-muted hover:bg-ink-3",
+            )}
+            onClick={() => set("category", category === c ? null : c)}
+            aria-pressed={category === c}
+          >
+            <CategoryIcon category={c} size={44} />
+            <span className="w-full truncate text-center">{t(CATEGORY_META[c].label)}</span>
           </button>
         ))}
         {(difficulty || category || params.get("q")) && (

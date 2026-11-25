@@ -18,7 +18,7 @@ export function ReferralShare({ link }: { link: string }) {
   };
   return (
     <div className="space-y-2">
-      <div className="truncate rounded-xl bg-tint/[0.05] px-4 py-3 font-mono text-xs text-muted ring-1 ring-line" title={link}>
+      <div className="truncate rounded-2xl border-2 border-line bg-ink-3 px-4 py-3 font-mono text-xs font-semibold text-muted" title={link}>
         {link}
       </div>
       <div className="grid grid-cols-2 gap-2">

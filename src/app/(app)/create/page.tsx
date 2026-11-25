@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CreateChallengeForm, type CreateDefaults } from "@/components/challenges/create-challenge-form";
 import { DifficultyBadge } from "@/components/ui/badges";
+import { CategoryIcon } from "@/components/brand/category-icon";
+import { PRESETS } from "@/lib/config/presets";
 import { PageHeader } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth";
 import { getStore } from "@/lib/data";
@@ -15,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("Create challenge") };
 }
 
-export default async function CreatePage({ searchParams }: { searchParams: Promise<{ template?: string; squad?: string }> }) {
+export default async function CreatePage({ searchParams }: { searchParams: Promise<{ template?: string; squad?: string; preset?: string }> }) {
   const t = await getT();
   const me = await requireUser();
   const sp = await searchParams;
@@ -36,11 +38,26 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
     if (t && (t.creatorId === me.id || (t.visibility === "public" && !t.squadId)))
       defaults = { title: t.title, description: t.description, difficulty: t.difficulty, category: t.category, durationDays: t.durationDays, tasks: t.tasks, requiresProof: t.requiresProof };
   }
+  const preset = PRESETS.find((x) => x.key === sp.preset);
+  if (preset && !sp.template)
+    defaults = { title: t(preset.title), description: t(preset.description), category: preset.category, difficulty: preset.difficulty, durationDays: preset.durationDays, tasks: preset.tasks.map((x) => t(x)), requiresProof: false };
   if (sp.squad && squads.some((s) => s.id === sp.squad)) defaults.squadId = sp.squad;
 
   return (
     <>
-      <PageHeader eyebrow={t("Create")} title={t("Design a challenge")} subtitle={t("Set the rules, choose the difficulty and invite your crew.")} />
+      <PageHeader title={t("New challenge")} subtitle={t("Start from an idea or build your own.")} />
+      <section className="mb-8" aria-label={t("Quick start")}>
+        <h2 className="mb-3 font-display text-[19px] font-extrabold">{t("Quick start")}</h2>
+        <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
+          {PRESETS.map((x) => (
+            <Link key={x.key} href={`/create?preset=${x.key}`} scroll={false} className={`tile flex w-36 shrink-0 flex-col gap-2 rounded-2xl p-3 ${sp.preset === x.key ? "!border-violet bg-violet-soft" : ""}`}>
+              <CategoryIcon category={x.category} size={40} />
+              <span className="text-sm font-extrabold leading-snug">{t(x.title)}</span>
+              <span className="mt-auto text-xs font-bold text-subtle">{t.p(x.durationDays, "{n} day", "{n} days")}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
       {ent.isPremium ? (
         templates.length > 0 && (
           <section className="mb-6" aria-label={t("Your templates")}>
@@ -65,7 +82,7 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
         </Link>
       )}
       <CreateChallengeForm
-        key={sp.template ?? "new"}
+        key={sp.template ?? sp.preset ?? "new"}
         squads={squads.map((s) => ({ id: s.id, name: s.name }))}
         friends={friends.map((f) => ({ id: f.id, displayName: f.displayName, username: f.username, avatarColor: f.avatarColor, avatarUrl: f.avatarUrl, avatarFrame: f.avatarFrame }))}
         isPremium={ent.isPremium}

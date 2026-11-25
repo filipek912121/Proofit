@@ -1,6 +1,7 @@
 "use client";
 
 import { Lock, Globe, Users } from "lucide-react";
+import { CategoryIcon } from "@/components/brand/category-icon";
 import { CATEGORY_META, DIFFICULTY_META } from "@/lib/config/taxonomy";
 import type { Category, Difficulty } from "@/lib/types";
 import { useT } from "@/lib/i18n/client";
@@ -31,8 +32,8 @@ export function CategoryChip({ category, className }: { category: Category; clas
   const t = useT();
   const m = CATEGORY_META[category];
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-tint/5 px-2.5 py-1 text-xs text-muted ring-1 ring-line", className)}>
-      <Icon name={m.icon} className="h-3.5 w-3.5" />
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-ink-3 py-1 pl-1 pr-2.5 text-xs font-bold text-muted", className)}>
+      <CategoryIcon category={category} size={18} />
       {t(m.label)}
     </span>
   );

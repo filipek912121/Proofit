@@ -45,7 +45,7 @@ export function XpGainBar({ from, to }: { from: number; to: number }) {
         <span className="text-subtle tabular-nums">{t("{xp} XP to level {n}", { xp: b.xpToNext, n: b.level + 1 })}</span>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-tint/[0.08]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(b.progress * 100)} aria-label={t("Level progress")}>
-        <div className="h-full rounded-full bg-gradient-to-r from-violet to-electric" style={{ width: `${width * 100}%`, transition: instant ? "none" : "width 0.85s cubic-bezier(.2,.7,.2,1)" }} />
+        <div className="h-full rounded-full bg-gold" style={{ width: `${width * 100}%`, transition: instant ? "none" : "width 0.85s cubic-bezier(.2,.7,.2,1)" }} />
       </div>
     </div>
   );

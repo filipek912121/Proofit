@@ -1,32 +1,32 @@
 import { getT } from "@/lib/i18n/server";
-import { ArrowRight, Camera, Crown, Flame, ShieldCheck, Swords, Trophy, Users, Zap } from "lucide-react";
+import { Check, Crown, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { CategoryIcon } from "@/components/brand/category-icon";
 import { Logo } from "@/components/brand/logo";
+import { NavIcon } from "@/components/brand/nav-icons";
+import { StreakFlame } from "@/components/brand/streak-flame";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { DifficultyBadge } from "@/components/ui/badges";
+import { ProxiAvatar } from "@/components/proxi/proxi-avatar";
 import { Button, LinkButton } from "@/components/ui/button";
-import { ProgressBar } from "@/components/ui/progress";
 import { enterDemoAction } from "@/lib/actions/auth";
 import { getSessionUserId } from "@/lib/auth";
 import { PLAN_LIMITS, PREMIUM_PRICE } from "@/lib/config/game";
-import { DIFFICULTIES, DIFFICULTY_META, xpRangeLabel } from "@/lib/config/taxonomy";
 import { isDemoMode } from "@/lib/env";
 
-const EXAMPLES = {
-  easy: "Walk for 10 minutes",
-  medium: "Read for 30 minutes",
-  hard: "Complete a 5 km walk",
-  extreme: "7-day digital detox",
-} as const;
-
+/** Landing: one idea (prove it), one mascot, one button. */
 export default async function Landing() {
   const t = await getT();
   const signedIn = Boolean(await getSessionUserId());
   const demo = isDemoMode();
+  const LOOP = [
+    { icon: <CategoryIcon category="music" size={56} />, title: t("Pick a mission"), text: t("One beat a day. Up at 7:00. 10 pages. Or your own idea.") },
+    { icon: <NavIcon name="shield" size={56} />, title: t("Show your proof"), text: t("A photo, a link or a note. Done is better than promised.") },
+    { icon: <StreakFlame size={56} />, title: t("Keep the streak"), text: t("Your friends see it. PROXI grows with you.") },
+    { icon: <NavIcon name="trophy" size={56} />, title: t("Climb the league"), text: t("Weekly league with your crew. Duels when it gets personal.") },
+  ];
   return (
     <div className="overflow-x-hidden">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
+      <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
         <Logo />
         <nav className="flex items-center gap-2" aria-label={t("Account")}>
           <LanguageSwitcher className="hidden sm:inline-flex" />
@@ -35,169 +35,112 @@ export default async function Landing() {
               {t("Open app")}
             </LinkButton>
           ) : (
-            <>
-              <LinkButton href="/login" variant="ghost" size="sm">
-                {t("Log in")}
-              </LinkButton>
-              <LinkButton href="/signup" size="sm">
-                {t("Sign up")}
-              </LinkButton>
-            </>
+            <LinkButton href="/login" variant="secondary" size="sm">
+              {t("Log in")}
+            </LinkButton>
           )}
         </nav>
       </header>
 
       <main id="main">
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-8 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
+        <section className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-5 pb-16 pt-6 text-center md:flex-row md:text-left">
+          <div className="shrink-0 animate-pop">
+            <ProxiAvatar stage={2} mood="excited" size={220} prop="trophy" />
+          </div>
           <div className="animate-rise">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-violet/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-violet-2 ring-1 ring-violet/30">
-              <Flame className="h-3.5 w-3.5" aria-hidden />{" "}{t("The social challenge platform")}
-            </p>
-            <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-              {t("Challenge.")}
-              <br />
-              {t("Compete.")}
-              <br />
-              <span className="text-gradient">{t("Win.")}</span>
+            <h1 className="font-display text-[40px] font-black leading-[1.05] sm:text-6xl">
+              {t("Challenge.")} {t("Compete.")} <span className="text-green">{t("Win.")}</span>
             </h1>
-            <p className="mt-6 max-w-lg text-lg text-muted">
-              {t("Daily, weekly and monthly challenges with friends. Prove your progress, earn XP, climb the ranks — and build habits that actually stick.")}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <p className="mt-4 text-xl font-extrabold">{t("Don't just say it. PROOF it.")}</p>
+            <p className="mt-2 max-w-md text-[17px] font-semibold text-muted">{t("Real-life missions with your friends. Show proof, keep your streak and grow your PROXI.")}</p>
+            <div className="mt-7 flex flex-col gap-3 sm:max-w-sm">
               {signedIn ? (
-                <LinkButton href="/dashboard" size="lg" icon={<ArrowRight className="h-5 w-5" />}>
+                <LinkButton href="/dashboard" size="lg" variant="success">
                   {t("Continue your streak")}
                 </LinkButton>
               ) : demo ? (
                 <form action={enterDemoAction}>
-                  <Button size="lg" icon={<Zap className="h-5 w-5" />}>
+                  <Button size="lg" variant="success" className="w-full">
                     {t("Try the live demo")}
                   </Button>
                 </form>
               ) : (
-                <LinkButton href="/signup" size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                  {t("Start for free")}
+                <LinkButton href="/signup" size="lg" variant="success">
+                  {t("Get started")}
                 </LinkButton>
               )}
-              <LinkButton href={signedIn ? "/explore" : "/signup"} variant="secondary" size="lg">
-                {signedIn ? t("Browse challenges") : t("Create account")}
-              </LinkButton>
-            </div>
-            <p className="mt-4 text-xs text-subtle">{t("Free forever plan · No credit card required")}</p>
-          </div>
-
-          {/* Product preview */}
-          <div className="relative animate-rise [animation-delay:120ms]">
-            <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-tr from-violet/30 via-indigo-500/10 to-electric/25 blur-3xl animate-glow" aria-hidden />
-            <div className="glass-strong neon-border relative rounded-3xl p-5 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted">{t("Level 12 · Contender")}</p>
-                  <p className="font-display text-2xl font-bold">{t("Welcome back, Maja")}</p>
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-hard/15 px-3 py-1.5 text-sm font-bold text-orange-300">
-                  <Flame className="h-4 w-4" aria-hidden /> 23
-                </span>
-              </div>
-              <ProgressBar value={0.68} className="mt-4" label={t("Level progress example")} />
-              <div className="mt-5 space-y-3">
-                {DIFFICULTIES.map((d, i) => (
-                  <div key={d} className="flex items-center gap-3 rounded-2xl bg-tint/[0.04] p-3 ring-1 ring-line" style={{ animationDelay: `${200 + i * 80}ms` }}>
-                    <span className={`grid h-10 w-10 place-items-center rounded-xl ${DIFFICULTY_META[d].bg} ${DIFFICULTY_META[d].text}`}>
-                      <Zap className="h-5 w-5" aria-hidden />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{t(EXAMPLES[d])}</p>
-                      <p className="text-xs text-muted">{t("{range} per check-in", { range: xpRangeLabel(d) })}</p>
-                    </div>
-                    <DifficultyBadge difficulty={d} />
-                  </div>
-                ))}
-              </div>
+              {!signedIn && (
+                <LinkButton href={demo ? "/signup" : "/login"} variant="secondary" size="lg">
+                  {demo ? t("Create account") : t("I already have an account")}
+                </LinkButton>
+              )}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-16" aria-labelledby="features">
-          <h2 id="features" className="text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            {t("Built for people who")}{" "}<span className="text-gradient">{t("finish")}</span>
-          </h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { I: Swords, title: "1v1 Duels", d: "Challenge a friend, pick a duration, and see who checks in more." },
-              { I: Users, title: "Squads", d: "Private or public groups with their own challenges and weekly leaderboards." },
-              { I: Camera, title: "Proof uploads", d: "Photos, links or write-ups — reviewed by real people before XP lands." },
-              { I: Trophy, title: "Fair XP", d: "One check-in per challenge per day, a daily cap, and streak bonuses that can't be farmed." },
-            ].map(({ I, title, d }, i) => (
-              <div key={title} className="glass rounded-2xl p-6 transition hover:-translate-y-1 hover:border-line-strong animate-rise" style={{ animationDelay: `${i * 70}ms` }}>
-                <span className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-violet/30 to-electric/20 text-violet-2 ring-1 ring-violet/30">
-                  <I className="h-5 w-5" aria-hidden />
-                </span>
-                <h3 className="font-display text-lg font-bold">{t(title)}</h3>
-                <p className="mt-1.5 text-sm text-muted">{t(d)}</p>
-              </div>
-            ))}
+        <section className="border-y-2 border-line bg-ink-3/60 py-14">
+          <div className="mx-auto max-w-5xl px-5">
+            <h2 className="text-center font-display text-3xl font-black">{t("Real life is the game")}</h2>
+            <ol className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {LOOP.map((s) => (
+                <li key={s.title} className="flex flex-col items-center text-center">
+                  {s.icon}
+                  <h3 className="mt-3 text-lg font-black">{s.title}</h3>
+                  <p className="mt-1 text-[15px] font-semibold text-muted">{s.text}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-16" aria-labelledby="safety">
-          <div className="glass flex flex-col items-start gap-6 rounded-3xl p-8 sm:flex-row sm:items-center">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-easy/12 text-easy ring-1 ring-easy/30">
-              <ShieldCheck className="h-7 w-7" aria-hidden />
-            </span>
+        <section className="mx-auto max-w-5xl px-5 py-14">
+          <div className="flex items-start gap-4 rounded-3xl border-2 border-line p-6">
+            <ShieldCheck className="h-10 w-10 shrink-0 text-green" aria-hidden />
             <div>
-              <h2 id="safety" className="font-display text-2xl font-bold">
-                {t("Hard, never harmful")}
-              </h2>
-              <p className="mt-1 max-w-2xl text-muted">
+              <h2 className="font-display text-xl font-black">{t("Hard, never harmful")}</h2>
+              <p className="mt-1 font-semibold text-muted">
                 {t("Even Extreme challenges stay safe. PROOFIT blocks challenges that promote dangerous exercise, sleep deprivation, starvation, dehydration, substance use or self-harm.")}
               </p>
             </div>
           </div>
-        </section>
 
-        <section className="mx-auto max-w-4xl px-5 py-16" aria-labelledby="pricing">
-          <h2 id="pricing" className="text-center font-display text-3xl font-bold tracking-tight">
-            {t("Simple pricing")}
-          </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="glass rounded-3xl p-7">
-              <p className="font-display text-xl font-bold">{t("Free")}</p>
-              <p className="mt-1 font-display text-4xl font-bold">{t("0 PLN")}</p>
-              <ul className="mt-5 space-y-2 text-sm text-muted">
-                <li>{t("Up to {n} active challenges", { n: PLAN_LIMITS.free.maxActiveChallenges })}</li>
-                <li>{t("Duels, squads & leaderboards")}</li>
-                <li>{t("Achievements & streaks")}</li>
+          <h2 className="mt-14 text-center font-display text-3xl font-black">{t("Simple pricing")}</h2>
+          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="rounded-3xl border-2 border-line p-6">
+              <p className="font-display text-xl font-black">{t("Free")}</p>
+              <p className="mt-1 font-display text-4xl font-black">{t("0 PLN")}</p>
+              <ul className="mt-5 space-y-2 font-semibold text-muted">
+                {[t("Up to {n} active challenges", { n: PLAN_LIMITS.free.maxActiveChallenges }), t("Duels, squads & leaderboards"), t("Achievements & streaks")].map((x) => (
+                  <li key={x} className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-green" strokeWidth={3} aria-hidden /> {x}
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="glass neon-border relative rounded-3xl p-7">
-              <p className="flex items-center gap-2 font-display text-xl font-bold">
-                <Crown className="h-5 w-5 text-gold" aria-hidden />{" "}{t("Premium")}
+            <div className="rounded-3xl border-2 border-gold p-6">
+              <p className="flex items-center gap-2 font-display text-xl font-black">
+                <Crown className="h-5 w-5 text-gold" aria-hidden /> {t("Premium")}
               </p>
-              <p className="mt-1 font-display text-4xl font-bold">
+              <p className="mt-1 font-display text-4xl font-black">
                 {PREMIUM_PRICE.amount.toFixed(2).replace(".", ",")} <span className="text-lg text-muted">{t("PLN / month")}</span>
               </p>
-              <ul className="mt-5 space-y-2 text-sm text-muted">
-                <li>{t("Up to {n} active challenges", { n: PLAN_LIMITS.premium.maxActiveChallenges })}</li>
-                <li>{t("Advanced statistics")}</li>
-                <li>{t("Private squads & custom templates")}</li>
-                <li>{t("Extra profile customization")}</li>
+              <ul className="mt-5 space-y-2 font-semibold text-muted">
+                {[t("Up to {n} active challenges", { n: PLAN_LIMITS.premium.maxActiveChallenges }), t("Advanced statistics"), t("Private squads & custom templates"), t("Extra profile customization")].map((x) => (
+                  <li key={x} className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-gold" strokeWidth={3} aria-hidden /> {x}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-line px-5 py-8 text-sm text-subtle sm:flex-row">
-        <Logo size={22} />
-        <div className="flex gap-2">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
-        <p>© {new Date().getFullYear()} PROOFIT · Challenge. Compete. Win.</p>
-        <Link href={signedIn ? "/dashboard" : "/login"} className="hover:text-fg">
+      <footer className="border-t-2 border-line py-8 text-center text-sm font-semibold text-subtle">
+        <Link href={signedIn ? "/dashboard" : "/login"} className="font-extrabold uppercase tracking-wide text-violet-2">
           {signedIn ? t("Dashboard") : t("Log in")}
         </Link>
+        <p className="mt-2">PROOFIT · {t("Challenge. Compete. Win.")}</p>
       </footer>
     </div>
   );

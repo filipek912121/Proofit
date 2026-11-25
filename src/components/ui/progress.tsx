@@ -3,23 +3,26 @@ import { cn } from "./cn";
 export function ProgressBar({ value, className, tone = "brand", label }: { value: number; className?: string; tone?: "brand" | "easy" | "medium" | "hard" | "extreme" | "gold"; label?: string }) {
   const pct = Math.round(Math.max(0, Math.min(1, value)) * 100);
   const fills = {
-    brand: "bg-gradient-to-r from-violet via-indigo-500 to-electric",
+    brand: "bg-violet",
     easy: "bg-easy",
     medium: "bg-medium",
     hard: "bg-hard",
     extreme: "bg-extreme",
-    gold: "bg-gradient-to-r from-amber-300 to-yellow-500",
+    gold: "bg-gold",
   };
   return (
     <div
-      className={cn("h-2 w-full overflow-hidden rounded-full bg-tint/[0.07]", className)}
+      className={cn("h-3 w-full overflow-hidden rounded-full bg-ink-3", className)}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={pct}
       aria-label={label}
     >
-      <div className={cn("h-full origin-left rounded-full transition-[width] duration-700 ease-out animate-grow-x", fills[tone])} style={{ width: `${pct}%` }} />
+      <div className={cn("relative h-full origin-left rounded-full transition-[width] duration-700 ease-out animate-grow-x", fills[tone])} style={{ width: `${pct}%` }}>
+        {/* Glossy highlight strip — the "toy" feel of game progress bars */}
+        {pct > 6 && <span className="absolute inset-x-[6px] top-[22%] h-[26%] rounded-full bg-white/30" aria-hidden />}
+      </div>
     </div>
   );
 }
@@ -45,7 +48,7 @@ export function ProgressRing({
   return (
     <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }} role="img" aria-label={label ?? `${Math.round(pct * 100)}%`}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-tint)" strokeOpacity={0.09} strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-ink-3)" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}

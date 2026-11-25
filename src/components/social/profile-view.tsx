@@ -21,10 +21,10 @@ type Overview = NonNullable<Awaited<ReturnType<typeof profileOverview>>>;
 export const STATUS_LABEL = { active: "Active", completed: "Completed", failed: "Failed", left: "Left" } as const;
 
 export const TIER_STYLE = {
-  bronze: "from-orange-700/30 to-orange-900/10 text-orange-300 ring-orange-500/30",
-  silver: "from-zinc-300/25 to-zinc-500/10 text-zinc-200 ring-zinc-300/30",
-  gold: "from-amber-300/30 to-yellow-600/10 text-gold ring-gold/40",
-  legend: "from-violet/40 to-electric/20 text-violet-2 ring-violet/50",
+  bronze: "bg-[#f6e3d3] text-[#9a5420] ring-[#e0b48c] [--tier:#c97a3d]",
+  silver: "bg-[#eceef3] text-[#58607a] ring-[#c9ced9] [--tier:#9aa3b5]",
+  gold: "bg-[#fff2cc] text-[#a06a00] ring-[#ffd56b] [--tier:#ffb81c]",
+  legend: "bg-violet-soft text-violet-2 ring-violet/50 [--tier:#7b5cff]",
 } as const;
 
 export async function ProfileView({ o }: { o: Overview }) {
@@ -40,7 +40,7 @@ export async function ProfileView({ o }: { o: Overview }) {
           <Avatar {...avatarOf(p)} size={88} ring={o.isPremium} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-3xl font-bold">{p.displayName}</h1>
+              <h1 className="font-display text-3xl font-black">{p.displayName}</h1>
               {o.isPremium && (
                 <Pill tone="gold">
                   <Crown className="h-3 w-3" aria-hidden />{" "}{t("Premium")}
@@ -112,7 +112,7 @@ export async function ProfileView({ o }: { o: Overview }) {
               key={a.id}
               className={cn(
                 "flex w-28 shrink-0 flex-col items-center rounded-2xl p-3 text-center ring-1 sm:w-auto",
-                a.unlockedAt ? cn("bg-gradient-to-b", TIER_STYLE[a.tier]) : "bg-tint/[0.02] text-subtle ring-line",
+                a.unlockedAt ? TIER_STYLE[a.tier] : "bg-tint/[0.02] text-subtle ring-line",
               )}
               title={t(a.description)}
             >

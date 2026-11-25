@@ -82,11 +82,11 @@ export default async function AchievementsPage() {
         {unlocked.length ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {unlocked.map((a, i) => (
-              <div key={a.id} className={cn("shine relative flex flex-col items-center rounded-2xl bg-gradient-to-b p-4 text-center ring-1 animate-pop", TIER_STYLE[a.tier])} style={{ animationDelay: `${i * 50}ms` }}>
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-black/20 ring-1 ring-white/10">
+              <div key={a.id} className={cn("relative flex flex-col items-center rounded-2xl p-4 text-center ring-2 animate-pop", TIER_STYLE[a.tier])} style={{ animationDelay: `${i * 50}ms` }}>
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--tier)] text-white shadow-[0_4px_0_rgb(0_0_0/0.15)]">
                   <Icon name={a.icon} className="h-6 w-6" />
                 </span>
-                <p className="mt-2 text-sm font-bold text-fg">{t(a.name)}</p>
+                <p className="mt-2 text-sm font-black">{t(a.name)}</p>
                 <p className="text-[11px] text-muted">
                   {t(a.tier[0].toUpperCase() + a.tier.slice(1))} · {formatDate(a.unlockedAt!, t.locale)}
                 </p>
