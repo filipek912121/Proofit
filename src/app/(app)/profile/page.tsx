@@ -11,6 +11,9 @@ import { Card, SectionTitle } from "@/components/ui/card";
 import { signOutAction } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth";
 import { profileOverview } from "@/lib/services/profile";
+import { getProxiLook } from "@/lib/services/proxi";
+import { ProxiAvatar } from "@/components/proxi/proxi-avatar";
+import { stageInfo } from "@/lib/proxi/config";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -35,11 +38,26 @@ function Row({ href, icon: I, label, hint, tone }: { href: string; icon: LucideI
 export default async function ProfilePage() {
   const t = await getT();
   const me = await requireUser();
-  const o = await profileOverview(me.id, me.id);
+  const [o, proxi] = await Promise.all([profileOverview(me.id, me.id), getProxiLook(me.id)]);
   if (!o) notFound();
+  const stage = stageInfo(proxi.stage);
   return (
     <>
       <ProfileView o={o} />
+      <Link href="/proxi" className="surface tap mt-6 flex items-center gap-4 rounded-2xl p-4 animate-rise hover:border-line-strong">
+        <span className="shrink-0" aria-hidden>
+          <ProxiAvatar stage={proxi.stage} look={proxi.look} mood="happy" size={64} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-xs font-semibold uppercase tracking-wider" style={{ color: stage.color }}>
+            PROXI · {stage.name}
+          </span>
+          <span className="block truncate text-sm font-semibold">{t("Your PROXI")}</span>
+          <span className="block truncate text-xs text-subtle">{t("Skins, accessories and evolution")}</span>
+        </span>
+        {proxi.unseen > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-extreme px-1.5 text-[10px] font-bold text-white">{proxi.unseen}</span>}
+        <ChevronRight className="h-4 w-4 text-subtle" aria-hidden />
+      </Link>
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <ReferralCard userId={me.id} username={me.username} />
         <section>
@@ -65,7 +83,7 @@ export default async function ProfilePage() {
               <ThemeSwitcher />
             </div>
             <form action={signOutAction}>
-              <button className="tap flex w-full items-center gap-3 px-4 py-3.5 text-left text-red-300 hover:bg-extreme/5">
+              <button className="tap flex w-full items-center gap-3 px-4 py-3.5 text-left text-extreme hover:bg-extreme/5">
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-extreme/10 ring-1 ring-extreme/25">
                   <LogOut className="h-[18px] w-[18px]" aria-hidden />
                 </span>

@@ -1,5 +1,5 @@
 import "server-only";
-import { ACHIEVEMENTS, qualifyingAchievements } from "@/lib/config/achievements";
+import { ACHIEVEMENTS, qualifyingAchievements, type AchievementStats } from "@/lib/config/achievements";
 import { REFERRAL_RULES, XP_RULES } from "@/lib/config/game";
 import { syncProxiUnlocks } from "./proxi";
 import { DuplicateError, getStore } from "@/lib/data";
@@ -119,25 +119,23 @@ export async function maybeRewardReferral(userId: string) {
 }
 
 /** Recalculate stats and unlock any newly earned achievements. */
-export async function evaluateAchievements(userId: string): Promise<Achievement[]> {
+/** The numbers achievements are based on (shared by unlocking and the progress UI). */
+export async function achievementStats(userId: string): Promise<AchievementStats | null> {
   const store = getStore();
-  const [profile, owned, completions, participations, duels, memberships, created, approvedProofs, catalogue] = await Promise.all([
+  const [profile, completions, participations, duels, memberships, created, approvedProofs, events] = await Promise.all([
     store.getProfile(userId),
-    store.listUserAchievements(userId),
     store.listCompletions({ userId }),
     store.listParticipations({ userId }),
     store.listDuels(userId),
     store.listSquadMembers({ userId }),
     store.listChallenges({ creatorId: userId }),
     store.listProofs({ userId, status: "approved" }),
-    store.listAchievements(),
+    store.listXpEvents({ userId }),
   ]);
-  const referrals = (await store.listXpEvents({ userId })).filter((e) => e.reason === "referral" && e.refId?.startsWith("ref:")).length;
-  if (!profile) return [];
+  if (!profile) return null;
   const completed = participations.filter((p) => p.status === "completed");
   const completedChallenges = completed.length ? await store.listChallenges({ ids: completed.map((p) => p.challengeId) }) : [];
-
-  const qualifying = qualifyingAchievements({
+  return {
     totalCheckins: completions.filter((c) => c.status !== "rejected").length,
     longestStreak: profile.longestStreak,
     challengesCompleted: completed.length,
@@ -147,8 +145,15 @@ export async function evaluateAchievements(userId: string): Promise<Achievement[
     challengesCreated: created.filter((c) => c.creatorId === userId).length,
     level: levelFromXp(profile.xp).level,
     approvedProofs: approvedProofs.length,
-    referrals,
-  });
+    referrals: events.filter((e) => e.reason === "referral" && e.refId?.startsWith("ref:")).length,
+  };
+}
+
+export async function evaluateAchievements(userId: string): Promise<Achievement[]> {
+  const store = getStore();
+  const [stats, owned, catalogue] = await Promise.all([achievementStats(userId), store.listUserAchievements(userId), store.listAchievements()]);
+  if (!stats) return [];
+  const qualifying = qualifyingAchievements(stats);
   const have = new Set(owned.map((o) => o.achievementId));
   const unlocked: Achievement[] = [];
   for (const id of qualifying) {

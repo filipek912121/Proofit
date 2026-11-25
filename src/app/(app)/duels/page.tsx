@@ -1,9 +1,10 @@
 import { getT } from "@/lib/i18n/server";
-import { Swords } from "lucide-react";
+import { Swords, Trophy, Zap, Hourglass } from "lucide-react";
 import type { Metadata } from "next";
 import { DuelCard } from "@/components/social/duel-card";
 import { NewDuelForm } from "@/components/social/new-duel-form";
-import { Card, PageHeader, SectionTitle } from "@/components/ui/card";
+import { PageHeader, SectionTitle, Stat } from "@/components/ui/card";
+import { CollapsiblePanel } from "@/components/ui/collapsible-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireUser } from "@/lib/auth";
 import { getStore } from "@/lib/data";
@@ -43,15 +44,27 @@ export default async function DuelsPage({ searchParams }: { searchParams: Promis
   const active = duels.filter((v) => v.duel.status === "active");
   const done = duels.filter((v) => !["pending", "active"].includes(v.duel.status));
   const wins = duels.filter((v) => v.duel.winnerId === me.id).length;
+  const losses = done.filter((v) => v.duel.winnerId && v.duel.winnerId !== me.id).length;
 
   return (
     <>
       <PageHeader eyebrow={t("Duels")} title={t("Head-to-head")} subtitle={`${t("Challenge someone directly. Winner takes bonus XP.")} ${t("Your record:")} ${t.p(wins, "{n} win", "{n} wins")}.`} />
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="surface mb-6 grid grid-cols-4 gap-2 rounded-2xl p-4 animate-rise">
+        <Stat value={active.length} label={t("Live")} icon={<Zap className="h-4 w-4 text-violet-2" aria-hidden />} />
+        <Stat value={pending.length} label={t("Pending")} icon={<Hourglass className="h-4 w-4 text-medium" aria-hidden />} />
+        <Stat value={wins} label={t("Wins")} icon={<Trophy className="h-4 w-4 text-gold" aria-hidden />} />
+        <Stat value={losses} label={t("Losses")} />
+      </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px] lg:gap-8">
+        <aside className="lg:sticky lg:top-8 lg:order-last lg:self-start">
+          <CollapsiblePanel glow title={t("New duel")} icon={<Swords className="h-5 w-5 text-extreme" aria-hidden />} defaultOpen={Boolean(validDefault || preselected)}>
+            <NewDuelForm opponents={opponents} challenges={duelable.map((c) => ({ id: c.id, title: c.title, durationDays: c.durationDays }))} defaultChallengeId={validDefault} defaultOpponentId={preselected} />
+          </CollapsiblePanel>
+        </aside>
         <div className="space-y-8">
           <section>
             <SectionTitle title={t("Live")} />
-            {active.length ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{active.map((v) => <DuelCard key={v.duel.id} v={v} />)}</div> : <EmptyState icon={Swords} title={t("No live duels")} text={t("Send a challenge — it goes live when they accept.")} />}
+            {active.length ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{active.map((v, i) => <div key={v.duel.id} className="animate-rise" style={{ animationDelay: `${i * 40}ms` }}><DuelCard v={v} /></div>)}</div> : <EmptyState icon={Swords} title={t("No live duels")} text={t("Send a challenge — it goes live when they accept.")} />}
           </section>
           {pending.length > 0 && (
             <section>
@@ -66,14 +79,6 @@ export default async function DuelsPage({ searchParams }: { searchParams: Promis
             </section>
           )}
         </div>
-        <aside className="lg:sticky lg:top-8 lg:self-start">
-          <Card glow className="p-5">
-            <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
-              <Swords className="h-5 w-5 text-extreme" aria-hidden />{" "}{t("New duel")}
-            </h2>
-            <NewDuelForm opponents={opponents} challenges={duelable.map((c) => ({ id: c.id, title: c.title, durationDays: c.durationDays }))} defaultChallengeId={validDefault} defaultOpponentId={preselected} />
-          </Card>
-        </aside>
       </div>
     </>
   );

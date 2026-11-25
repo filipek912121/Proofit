@@ -1,10 +1,11 @@
 import { getT } from "@/lib/i18n/server";
-import { Lock, Users } from "lucide-react";
+import { KeyRound, Lock, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CreateSquadForm, JoinByCodeForm } from "@/components/social/squad-forms";
 import { ActionButton } from "@/components/ui/action-button";
-import { Card, PageHeader, SectionTitle } from "@/components/ui/card";
+import { PageHeader, SectionTitle } from "@/components/ui/card";
+import { CollapsiblePanel } from "@/components/ui/collapsible-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { joinSquadAction } from "@/lib/actions/social";
 import { requireUser } from "@/lib/auth";
@@ -21,7 +22,7 @@ async function SquadTile({ s, count, joinable }: { s: Squad; count: number; join
   const t = await getT();
   const hue = [...s.name].reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
   return (
-    <div className="glass tap group flex flex-col rounded-2xl p-5 hover:border-line-strong">
+    <div className="surface tap group flex flex-col rounded-2xl p-4 animate-rise hover:border-line-strong">
       <Link href={`/squads/${s.id}`} className="flex items-center gap-3">
         <span className="grid h-12 w-12 place-items-center rounded-2xl font-display text-lg font-bold text-white ring-1 ring-tint/10" style={{ background: `linear-gradient(135deg, hsl(${hue} 80% 55%), hsl(${(hue + 50) % 360} 80% 45%))` }} aria-hidden>
           {s.name[0]}
@@ -52,7 +53,15 @@ export default async function SquadsPage() {
   return (
     <>
       <PageHeader eyebrow={t("Squads")} title={t("Stronger together")} subtitle={t("Groups with shared challenges and weekly leaderboards.")} />
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:gap-8">
+        <aside className="space-y-3 lg:sticky lg:top-8 lg:order-last lg:self-start">
+          <CollapsiblePanel glow title={t("Create a squad")} icon={<Plus className="h-5 w-5 text-violet-2" aria-hidden />} defaultOpen={!mine.length}>
+            <CreateSquadForm isPremium={ent.isPremium} />
+          </CollapsiblePanel>
+          <CollapsiblePanel title={t("Have an invite code?")} icon={<KeyRound className="h-5 w-5 text-gold" aria-hidden />}>
+            <JoinByCodeForm />
+          </CollapsiblePanel>
+        </aside>
         <div className="space-y-8">
           <section>
             <SectionTitle title={t("Your squads")} />
@@ -71,16 +80,6 @@ export default async function SquadsPage() {
             )}
           </section>
         </div>
-        <aside className="space-y-4 lg:sticky lg:top-8 lg:self-start">
-          <Card className="p-5">
-            <h2 className="mb-3 font-display font-bold">{t("Have an invite code?")}</h2>
-            <JoinByCodeForm />
-          </Card>
-          <Card glow className="p-5">
-            <h2 className="mb-4 font-display text-lg font-bold">{t("Create a squad")}</h2>
-            <CreateSquadForm isPremium={ent.isPremium} />
-          </Card>
-        </aside>
       </div>
     </>
   );

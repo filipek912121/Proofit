@@ -1004,4 +1004,10 @@ export const pl: Record<string, string> = {
   "{range} per check-in": "{range} za check-in",
   "{xp} XP to level {n}": "{xp} XP do poziomu {n}",
   "— reviewed before XP is awarded": "— sprawdzany przed przyznaniem XP",
+  "Next goals": "Następne cele",
+  "Unlocked": "Odblokowane",
+  "Wins": "Wygrane",
+  "Losses": "Przegrane",
+  "Skins, accessories and evolution": "Skórki, dodatki i ewolucja",
+  "For today": "Na dziś",
 };

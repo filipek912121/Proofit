@@ -43,3 +43,20 @@ export function qualifyingAchievements(s: AchievementStats): string[] {
   if (s.referrals >= 3) out.push("recruiter");
   return out;
 }
+
+/** Current value and target for each badge, for progress bars on locked badges. */
+export function achievementProgress(s: AchievementStats): Record<string, [number, number]> {
+  return {
+    first_challenge: [s.totalCheckins, 1],
+    streak_7: [s.longestStreak, 7],
+    streak_30: [s.longestStreak, 30],
+    challenge_master: [s.challengesCompleted, 10],
+    duel_winner: [s.duelsWon, 1],
+    extreme_finisher: [s.extremeCompleted, 1],
+    squad_up: [s.squads, 1],
+    creator: [s.challengesCreated, 1],
+    level_10: [s.level, 10],
+    proof_pro: [s.approvedProofs, 5],
+    recruiter: [s.referrals, 3],
+  };
+}
